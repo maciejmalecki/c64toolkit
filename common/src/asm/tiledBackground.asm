@@ -1,0 +1,119 @@
+.importonce
+.filenamespace tile
+.import source "vic.asm"
+.import source "c64common.asm"
+
+/*
+ * VIC-II memory bank layout
+ * -------------------------
+ * $0000-$03FF			Screen 0 mem
+ * $0400-$07FF			Screen 1 mem
+ * $0800-$0FFF			Charset
+ * $1000-$3FFF			Free sprite slots
+ *
+ * Map structure
+ * -------------
+ * $0000				Control
+ * $0001				Width  
+ * $0002				Height
+ * $0003				Color0
+ * $0004				Color1
+ * $0005				Color2
+ * $0006				Charset Number
+ * $0007, $0008			Tile attribute def offset
+ * $0009, $000A			Map def offset
+ * $000B, $000C			Map entry def offset
+ */
+
+.label screenPointerLo = $02
+.label screenPointerHi = $03
+.label tilePointerLo = $04
+.label tilePointerHi = $05
+.label mapPointerLo = $06
+.label mapPointerHi = $07
+.label mapPositionXTile = $08
+.label mapPositionYTile = $0A
+.label temp0 = $0B
+.label temp1 = $0C
+.label temp2 = $0D
+.label colorRamPointerLo = $0E
+.label colorRamPointerHi = $0F
+.label mapStructurePointerLo = $10
+.label mapStructurePointerHi = $11
+.label tileAttributePointerLo = $12
+.label tileAttributePointerHi = $13
+.label mapWidth = $14
+.label mapHeight = $15
+.label tempMapPointerLo = $16
+.label tempMapPointerHi = $17
+
+.label MAP_POINTERS = $3000
+
+.label HEADER_SIZE = 13
+
+/*
+ * Initializes Map data.
+ * Input:
+ *  A - map number
+ *  Y - map entry position ID
+ */
+initMap: {
+	// initialize map structure pointer
+	asl
+	tax
+	lda tile.mapPointers, x
+	sta	tile.mapStructurePointerLo
+	inx
+	lda tile.mapPointers, x
+	sta tile.mapStructurePointerHi
+	// initialize tile def pointer
+	clc
+	lda tile.mapStructurePointerLo
+	adc #HEADER_SIZE
+	sta tile.tilePointerLo
+	lda tile.mapStructurePointerHi
+	sta tile.tilePointerHi
+	adc #0
+	// initialize zero page variables with structure data
+	ldy #0
+	:tile_skipByte()
+	:tile_readByte(tile.mapWidth)
+	:tile_readByte(tile.mapHeight)
+	:tile_readByte(vic.BG_COL_0)
+	:tile_readByte(vic.BG_COL_1)
+	:tile_readByte(vic.BG_COL_2)
+	:tile_skipByte()
+	:tile_readOffset(tile.mapStructurePointerLo, tile.tileAttributePointerLo)
+	:tile_readOffset(tile.mapStructurePointerLo, tile.mapPointerLo)
+	// TODO load map entry pointers
+	
+	rts
+	
+}
+
+.pc = MAP_POINTERS "Map pointers" virtual
+mapPointers:  
+
+.macro tile_readByte(to) {
+	lda (tile.mapStructurePointerLo),y
+	sta to
+	iny
+}
+.macro tile_readOffset(source, target) {
+	lda (tile.mapStructurePointerLo),y
+	sta target
+	iny
+	lda (tile.mapStructurePointerHi),y
+	sta [target + 1]
+	clc
+	lda source
+	adc target
+	sta target
+	lda [source + 1]
+	adc [target + 1]
+	sta [target + 1]
+	iny
+}
+.macro tile_skipByte() {
+	iny
+}
