@@ -290,23 +290,41 @@ next3:
 	rts
 }
 
-irqDashboard: {
-	:vic_IRQ_ENTER()
-	:cia_setVICBank(vic.BANK_0)
-	:vic_configureTextMemory(1, 3)
-	:vic_setMultiColorText(0)
-	inc vic.BORDER_COL
-	:vic_IRQ_EXIT(irqPlayfield,PLAYFIELD_RASTER)
-	rti
-}
-
 irqPlayfield: {
 	:vic_IRQ_ENTER()
 	:cia_setVICBank(vic.BANK_2)
 	:vic_configureTextMemory(0, 4)
 	:vic_setMultiColorText(1)
 	dec vic.BORDER_COL
-	:vic_IRQ_EXIT(irqDashboard, DASHBOARD_RASTER)
+	lda #0
+	sta tile.color2SwitchPosition
+	:tile_nextColor2Switch()
+	lda tile.nextTileSwitchingColor2
+	cmp #$FF
+	beq fireDashboard
+	:vic_IRQ_EXIT(irqSwitchColor, tile.nextRasterSwitchingColorLo, true)
+fireDashboard:
+	:vic_IRQ_EXIT(irqDashboard, DASHBOARD_RASTER, false)
+}
+
+irqSwitchColor: {
+	:vic_IRQ_ENTER()
+	:tile_nextColor2Switch()
+	lda tile.nextTileSwitchingColor2
+	cmp #$FF
+	beq fireDashboard
+	:vic_IRQ_EXIT(irqSwitchColor, tile.nextRasterSwitchingColorLo, true)
+fireDashboard:
+	:vic_IRQ_EXIT(irqDashboard, DASHBOARD_RASTER, false)
+}
+
+irqDashboard: {
+	:vic_IRQ_ENTER()
+	:cia_setVICBank(vic.BANK_0)
+	:vic_configureTextMemory(1, 3)
+	:vic_setMultiColorText(0)
+	inc vic.BORDER_COL
+	:vic_IRQ_EXIT(irqPlayfield, PLAYFIELD_RASTER, false)
 }
 
 irqFreeze: {

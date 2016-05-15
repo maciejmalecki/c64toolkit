@@ -4,13 +4,6 @@
 .import source "c64common.asm"
 
 /*
- * VIC-II memory bank layout
- * -------------------------
- * $0000-$03FF			Screen 0 mem
- * $0400-$07FF			Screen 1 mem
- * $0800-$0FFF			Charset
- * $1000-$3FFF			Free sprite slots
- *
  * Map structure
  * -------------
  * $0000				Control
@@ -23,6 +16,13 @@
  * $0007, $0008			Tile attribute def offset
  * $0009, $000A			Map def offset
  * $000B, $000C			Map entry def offset
+ * $000D, $000E			BG_COLOR_2 switch table offset
+ * 
+ * Color switch table
+ * ------------------
+ * This table is used to alternate BG_COL_2 using raster interrupt. Table end is marked with $FF.
+ * Each table row is two byte: first byte denotes tile X position of the map, low nibble 
+ * of second byte denotes color used for switching.
  */
 
 .label screenPointerLo = $02
@@ -46,10 +46,19 @@
 .label mapHeight = $15
 .label tempMapPointerLo = $16
 .label tempMapPointerHi = $17
+.label color2SwitchTablePointerLo = $18
+.label color2SwitchTablePointerHi = $19
+.label mapEntryPointerLo = $1A
+.label mapEntryPointerHi = $1B
+.label color2SwitchPosition = $1C
+.label nextColor2 = $1D
+.label nextTileSwitchingColor2 = $1E
+.label nextRasterSwitchingColorLo = $1F
+.label nextRatesrSwitchingColorHi = $20
 
 .label MAP_POINTERS = $3000
 
-.label HEADER_SIZE = 13
+.label HEADER_SIZE = 15
 
 /*
  * Initializes Map data.
@@ -85,8 +94,8 @@ initMap: {
 	:tile_skipByte()
 	:tile_readOffset(tile.mapStructurePointerLo, tile.tileAttributePointerLo)
 	:tile_readOffset(tile.mapStructurePointerLo, tile.mapPointerLo)
-	// TODO load map entry pointers
-	
+	:tile_readOffset(tile.mapStructurePointerLo, tile.mapEntryPointerLo)
+	:tile_readOffset(tile.mapStructurePointerLo, tile.color2SwitchTablePointerLo)
 	rts
 	
 }
@@ -116,4 +125,16 @@ mapPointers:
 }
 .macro tile_skipByte() {
 	iny
+}
+
+.macro tile_nextColor2Switch() {
+	lda tile.color2SwitchPosition
+	asl
+	tay
+	lda (tile.color2SwitchTablePointerLo), y
+	sta tile.nextTileSwitchingColor2
+	iny
+	lda (tile.color2SwitchTablePointerLo), y
+	sta tile.nextColor2
+	inc tile.color2SwitchPosition
 }

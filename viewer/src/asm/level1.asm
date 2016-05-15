@@ -20,6 +20,12 @@ map0:
 	.word	tile.HEADER_SIZE + ts0.getSize()	// tile attr def offset
 	.word 	tile.HEADER_SIZE + ts0.getSize() + ta0.getSize()	// map def offset
 	.word	tile.HEADER_SIZE + ts0.getSize() + ta0.getSize() + md0.getSize()	// map entry def offset
+	.word	tile.HEADER_SIZE + ts0.getSize() + ta0.getSize() + md0.getSize() + 0 // color 2 switch table offset (TODO)
 	.fill 	ts0.getSize(), ts0.get(i)
 	.fill 	ta0.getSize(), ta0.get(i)
 	.fill 	md0.getSize(), md0.get(i)
+	// TODO map entry definition
+	.byte	0	.byte	LIGHT_BLUE
+	.byte	2	.byte	LIGHT_GREEN
+	.byte	4	.byte	LIGHT_RED
+	.byte	$FF			// end of color switch table

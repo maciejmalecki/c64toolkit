@@ -76,14 +76,28 @@
 	pha
 }
 
-.macro vic_IRQ_EXIT(intVector, rasterLine) {
+.macro vic_IRQ_EXIT(intVector, rasterLine, memory) {
 	ldx #>intVector
 	ldy #<intVector
 	stx $FFFF
 	sty $FFFE
-	:vic_setRaster(rasterLine)
+	.if (memory) {
+		lda rasterLine
+		sta vic.RASTER
+		lda vic.CONTROL_1
+		ror rasterLine+1
+		bcc doAnd
+		ora rasterLine+1
+		jmp next
+	doAnd:
+		and rasterLine+1
+	next:
+		sta vic.CONTROL_1
+	} else {
+		:vic_setRaster(rasterLine)
+	}
 	sec
-	rol vic.IRR
+	dec vic.IRR
 	pla
 	tax
 	pla
