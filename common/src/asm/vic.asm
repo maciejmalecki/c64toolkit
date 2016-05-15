@@ -87,10 +87,10 @@
 		lda vic.CONTROL_1
 		ror rasterLine+1
 		bcc doAnd
-		ora rasterLine+1
+		ora #%10000000
 		jmp next
 	doAnd:
-		and rasterLine+1
+		and #%01111111
 	next:
 		sta vic.CONTROL_1
 	} else {

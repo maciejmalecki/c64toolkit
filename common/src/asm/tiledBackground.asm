@@ -52,9 +52,10 @@
 .label mapEntryPointerHi = $1B
 .label color2SwitchPosition = $1C
 .label nextColor2 = $1D
-.label nextTileSwitchingColor2 = $1E
-.label nextRasterSwitchingColorLo = $1F
-.label nextRatesrSwitchingColorHi = $20
+.label nextTileSwitchingColor2Lo = $1E
+.label nextTileSwitchingColor2Hi = $1F
+.label nextRasterSwitchingColorLo = $20
+.label nextRasterSwitchingColorHi = $21
 
 .label MAP_POINTERS = $3000
 
@@ -112,7 +113,7 @@ mapPointers:
 	lda (tile.mapStructurePointerLo),y
 	sta target
 	iny
-	lda (tile.mapStructurePointerHi),y
+	lda (tile.mapStructurePointerLo),y
 	sta [target + 1]
 	clc
 	lda source
@@ -130,11 +131,19 @@ mapPointers:
 .macro tile_nextColor2Switch() {
 	lda tile.color2SwitchPosition
 	asl
+	asl
 	tay
 	lda (tile.color2SwitchTablePointerLo), y
-	sta tile.nextTileSwitchingColor2
+	sta tile.nextTileSwitchingColor2Lo
+	iny
+	lda (tile.color2SwitchTablePointerLo), y
+	sta tile.nextTileSwitchingColor2Hi
 	iny
 	lda (tile.color2SwitchTablePointerLo), y
 	sta tile.nextColor2
 	inc tile.color2SwitchPosition
+}
+
+.function tile_calcRaster(tileY) {
+	.return tileY * 16 + 50
 }

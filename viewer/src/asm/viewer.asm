@@ -299,9 +299,13 @@ irqPlayfield: {
 	lda #0
 	sta tile.color2SwitchPosition
 	:tile_nextColor2Switch()
-	lda tile.nextTileSwitchingColor2
+	lda tile.nextColor2
 	cmp #$FF
 	beq fireDashboard
+	lda tile.nextTileSwitchingColor2Lo
+	sta tile.nextRasterSwitchingColorLo
+	lda tile.nextTileSwitchingColor2Hi
+	sta tile.nextRasterSwitchingColorHi
 	:vic_IRQ_EXIT(irqSwitchColor, tile.nextRasterSwitchingColorLo, true)
 fireDashboard:
 	:vic_IRQ_EXIT(irqDashboard, DASHBOARD_RASTER, false)
@@ -309,10 +313,16 @@ fireDashboard:
 
 irqSwitchColor: {
 	:vic_IRQ_ENTER()
+	lda tile.nextColor2
+	sta vic.BG_COL_2
 	:tile_nextColor2Switch()
-	lda tile.nextTileSwitchingColor2
+	lda tile.nextColor2
 	cmp #$FF
 	beq fireDashboard
+	lda tile.nextTileSwitchingColor2Lo
+	sta tile.nextRasterSwitchingColorLo
+	lda tile.nextTileSwitchingColor2Hi
+	sta tile.nextRasterSwitchingColorHi
 	:vic_IRQ_EXIT(irqSwitchColor, tile.nextRasterSwitchingColorLo, true)
 fireDashboard:
 	:vic_IRQ_EXIT(irqDashboard, DASHBOARD_RASTER, false)
@@ -348,6 +358,8 @@ displayDashboardVars: {
 	:vic_outByteHex(tile.tileAttributePointerLo, SCREEN_2_MEM, 34, 22, WHITE)
 	:vic_outByteHex(tile.mapPointerHi, SCREEN_2_MEM, 32, 23, WHITE)
 	:vic_outByteHex(tile.mapPointerLo, SCREEN_2_MEM, 34, 23, WHITE)
+	:vic_outByteHex(tile.color2SwitchTablePointerHi, SCREEN_2_MEM, 32, 24, WHITE)
+	:vic_outByteHex(tile.color2SwitchTablePointerLo, SCREEN_2_MEM, 34, 24, WHITE)
 	:vic_outByteHex(tile.mapWidth, SCREEN_2_MEM, 11, 22, WHITE)
 	:vic_outByteHex(tile.mapHeight, SCREEN_2_MEM, 15, 22, WHITE)
 	rts
@@ -357,8 +369,8 @@ dashboardLabel:
 	.text "                           MSD:$____    "
 	.text " Tile X,Y:$__,$__          TSD:$____    "
 	.text " Map  W,H:$__,$__          TAD:$____    "
-	.text "                           MAP:$____    "
-	.text "Use joy 2 to scroll                by mm"
+	.text "                           MAP:$____  by"
+	.text "Use joy 2 to scroll        CST:$____  mm"
 	.byte $FF
 
 // various macros

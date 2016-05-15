@@ -25,7 +25,9 @@ map0:
 	.fill 	ta0.getSize(), ta0.get(i)
 	.fill 	md0.getSize(), md0.get(i)
 	// TODO map entry definition
-	.byte	0	.byte	LIGHT_BLUE
-	.byte	2	.byte	LIGHT_GREEN
-	.byte	4	.byte	LIGHT_RED
-	.byte	$FF			// end of color switch table
+	.word	tile_calcRaster(0)	.byte	LIGHT_BLUE 	.byte 0
+	.word	tile_calcRaster(1)	.byte	LIGHT_GREEN	.byte 0
+	.word	tile_calcRaster(2)	.byte	LIGHT_RED	.byte 0
+	.word	$0000				.byte	$FF			.byte 0	// end of color switch table
+	
+.print "asp=" + [tile.HEADER_SIZE + ts0.getSize() + ta0.getSize() + md0.getSize() + 0]

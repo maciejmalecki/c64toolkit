@@ -42,6 +42,17 @@
 	sta high
 }
 
+.macro c64_multiple2Mem(low) {
+	clc
+	asl low
+	bcc next
+	lda low + 1
+	asl
+	ora #%1
+	sta low + 1
+next:
+}
+
 .macro c64_copyWord(source, destination) {
 	lda source
 	sta destination
