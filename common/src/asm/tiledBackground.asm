@@ -56,6 +56,9 @@
 .label nextTileSwitchingColor2Hi = $1F
 .label nextRasterSwitchingColorLo = $20
 .label nextRasterSwitchingColorHi = $21
+.label rasterOffset = $22
+.label currentRasterTemp = $24
+.label nextColor0	=	$26
 
 .label MAP_POINTERS = $3000
 
@@ -140,10 +143,13 @@ mapPointers:
 	sta tile.nextTileSwitchingColor2Hi
 	iny
 	lda (tile.color2SwitchTablePointerLo), y
+	sta tile.nextColor0
+	iny
+	lda (tile.color2SwitchTablePointerLo), y
 	sta tile.nextColor2
 	inc tile.color2SwitchPosition
 }
 
 .function tile_calcRaster(tileY) {
-	.return tileY * 16 + 50
+	.return tileY * 16 + vic.TOP_SCREEN_RASTER_POS
 }

@@ -33,6 +33,8 @@
 .label BANK_2 = %00000001
 .label BANK_3 = %00000000
 
+.label TOP_SCREEN_RASTER_POS = 50
+
 /* ------------------------------------
  * VIC-II configuration handling.
  * ------------------------------------ */

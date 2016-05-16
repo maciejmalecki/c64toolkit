@@ -11,13 +11,14 @@
 .const SCREEN_0_MEM = $8000
 .const SCREEN_1_MEM = $8400
 .const SCREEN_2_MEM = $0400
+// height of the playfield
 .const SCREEN_HEIGHT = 20
 .const START_X = 0
 .const START_Y = 0
 .const MAP_NUMBER = 0
 
 // fixed raster positions
-.const DASHBOARD_RASTER = 209
+.const DASHBOARD_RASTER = vic.TOP_SCREEN_RASTER_POS + SCREEN_HEIGHT * 8 - 1
 .const PLAYFIELD_RASTER = 251
 
 // charset data
@@ -81,6 +82,7 @@ initialize:
 	:cia_setVICBank(vic.BANK_2)
 	:vic_setMultiColorText(1)
 	:vic_configureTextMemory(0, 1)
+	:c64_setMem($0000, tile.rasterOffset)
 	cli
 	
 	lda vic.CONTROL_2
@@ -102,11 +104,11 @@ displayMap: {
 	sta tile.temp1 // current X pos in the screen
 	sta tile.temp2 // current Y pos in the screen
 	// initialize screen pointer
-	:c64_setMem(SCREEN_0_MEM, tile.screenPointerLo, tile.screenPointerHi)
+	:c64_setMem(SCREEN_0_MEM, tile.screenPointerLo)
 	// initialize map pointer
 	:c64_copyWord(tile.mapPointerLo, tile.tempMapPointerLo)
 	// initialize color ram ptr
-	:c64_setMem(vic.COLOR_RAM, tile.colorRamPointerLo, tile.colorRamPointerHi)
+	:c64_setMem(vic.COLOR_RAM, tile.colorRamPointerLo)
 	// rewind map to start position
 	:c64_addMemByteToMem(tile.mapPositionXTile, tile.tempMapPointerLo, tile.tempMapPointerHi)	
 	lda tile.mapPositionYTile
@@ -185,7 +187,7 @@ transfer3:
 	lda tile.temp0
 	cmp #20
 	beq if1
-	:c64_addConstToMem(1, tile.tempMapPointerLo, tile.tempMapPointerHi)
+	:c64_addConstToMem(1, tile.tempMapPointerLo)
 	jmp if2
 if1:
 	lda #$00
@@ -206,16 +208,16 @@ if2:
 	lda tile.temp1
 	cmp #40
 	beq if3
-	:c64_addConstToMem(2, tile.screenPointerLo, tile.screenPointerHi)
-	:c64_addConstToMem(2, tile.colorRamPointerLo, tile.colorRamPointerHi)
+	:c64_addConstToMem(2, tile.screenPointerLo)
+	:c64_addConstToMem(2, tile.colorRamPointerLo)
 	jmp if4
 if3:
 	inc tile.temp2
 	inc tile.temp2
 	lda #$00
 	sta tile.temp1
-	:c64_addConstToMem(42, tile.screenPointerLo, tile.screenPointerHi)
-	:c64_addConstToMem(42, tile.colorRamPointerLo, tile.colorRamPointerHi)
+	:c64_addConstToMem(42, tile.screenPointerLo)
+	:c64_addConstToMem(42, tile.colorRamPointerLo)
 if4:
 	lda tile.temp2
 	cmp #SCREEN_HEIGHT
@@ -240,11 +242,13 @@ handleJoyA: {
 	and tile.temp0
 	bne next0
 	inc tile.mapPositionYTile
+	:c64_addConstToMem(16, tile.rasterOffset)
 next0:
 	lda #cia.JOY_UP
 	and tile.temp0
 	bne next1
 	dec tile.mapPositionYTile
+	:c64_subConstFromMem(16, tile.rasterOffset)
 next1:
 	lda #cia.JOY_LEFT
 	and tile.temp0
@@ -298,14 +302,17 @@ irqPlayfield: {
 	dec vic.BORDER_COL
 	lda #0
 	sta tile.color2SwitchPosition
+nextCol:
 	:tile_nextColor2Switch()
 	lda tile.nextColor2
 	cmp #$FF
 	beq fireDashboard
-	lda tile.nextTileSwitchingColor2Lo
-	sta tile.nextRasterSwitchingColorLo
-	lda tile.nextTileSwitchingColor2Hi
-	sta tile.nextRasterSwitchingColorHi
+	:c64_copyWord(tile.nextTileSwitchingColor2Lo, tile.nextRasterSwitchingColorLo)
+	:c64_subMemFromMem(tile.rasterOffset, tile.nextRasterSwitchingColorLo)
+	bmi nextCol
+	:c64_copyWord(tile.nextRasterSwitchingColorLo, tile.currentRasterTemp)
+	:c64_subConstFromMem(DASHBOARD_RASTER, tile.currentRasterTemp)
+	bpl fireDashboard
 	:vic_IRQ_EXIT(irqSwitchColor, tile.nextRasterSwitchingColorLo, true)
 fireDashboard:
 	:vic_IRQ_EXIT(irqDashboard, DASHBOARD_RASTER, false)
@@ -315,14 +322,19 @@ irqSwitchColor: {
 	:vic_IRQ_ENTER()
 	lda tile.nextColor2
 	sta vic.BG_COL_2
+	lda tile.nextColor0
+	sta vic.BG_COL_0
+nextCol:
 	:tile_nextColor2Switch()
 	lda tile.nextColor2
 	cmp #$FF
 	beq fireDashboard
-	lda tile.nextTileSwitchingColor2Lo
-	sta tile.nextRasterSwitchingColorLo
-	lda tile.nextTileSwitchingColor2Hi
-	sta tile.nextRasterSwitchingColorHi
+	:c64_copyWord(tile.nextTileSwitchingColor2Lo, tile.nextRasterSwitchingColorLo)
+	:c64_subMemFromMem(tile.rasterOffset, tile.nextRasterSwitchingColorLo)
+	bmi nextCol
+	:c64_copyWord(tile.nextRasterSwitchingColorLo, tile.currentRasterTemp)
+	:c64_subConstFromMem(DASHBOARD_RASTER, tile.currentRasterTemp)
+	bpl fireDashboard
 	:vic_IRQ_EXIT(irqSwitchColor, tile.nextRasterSwitchingColorLo, true)
 fireDashboard:
 	:vic_IRQ_EXIT(irqDashboard, DASHBOARD_RASTER, false)
@@ -330,9 +342,11 @@ fireDashboard:
 
 irqDashboard: {
 	:vic_IRQ_ENTER()
-	:cia_setVICBank(vic.BANK_0)
-	:vic_configureTextMemory(1, 3)
 	:vic_setMultiColorText(0)
+	:vic_configureTextMemory(1, 3)
+	:cia_setVICBank(vic.BANK_0)
+	lda #BLACK
+	sta vic.BG_COL_0
 	inc vic.BORDER_COL
 	:vic_IRQ_EXIT(irqPlayfield, PLAYFIELD_RASTER, false)
 }

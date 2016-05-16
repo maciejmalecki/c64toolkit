@@ -15,21 +15,31 @@
  * Various memory operations
  * --------------------------------------------- */
 
-.macro c64_setMem(value, low, high) {
+.macro c64_setMem(value, low) {
 	lda #<value
 	sta low
 	lda #>value
-	sta high
+	sta low+1
 }
 
-.macro c64_addConstToMem(value, low, high) {
+.macro c64_addConstToMem(value, low) {
 	clc
 	lda low
 	adc #<value
 	sta low
-	lda high
+	lda low + 1
 	adc #>value
-	sta high
+	sta low + 1
+}
+
+.macro c64_subConstFromMem(value, low) {
+	sec
+	lda low
+	sbc	#<value
+	sta low
+	lda low + 1
+	sbc #>value
+	sta low + 1
 }
 
 .macro c64_addMemByteToMem(byte, low, high) {
@@ -40,6 +50,26 @@
 	lda high
 	adc #$00
 	sta high
+}
+
+.macro c64_addMemToMem(source, destination) {
+	clc
+	lda source
+	adc destination
+	sta destination
+	lda source + 1
+	adc destination + 1
+	sta destination + 1
+}
+
+.macro c64_subMemFromMem(source, destination) {
+	sec
+	lda destination
+	sbc source
+	sta destination
+	lda destination + 1
+	sbc source + 1
+	sta destination + 1
 }
 
 .macro c64_multiple2Mem(low) {
