@@ -27,6 +27,7 @@ map0:
 	// TODO map entry definition
 	.word	tile_calcRaster(0)	.byte	GREEN	 	.byte LIGHT_BLUE
 	.word	tile_calcRaster(9)	.byte	DARK_GREY	.byte GREY
+	.word	tile_calcRaster(11)	.byte	GREY		.byte YELLOW
 	.word	$0000				.byte	$FF			.byte $FF	// end of color switch table
 	
 .print "asp=" + [tile.HEADER_SIZE + ts0.getSize() + ta0.getSize() + md0.getSize() + 0]

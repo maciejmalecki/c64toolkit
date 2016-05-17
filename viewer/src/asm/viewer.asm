@@ -240,21 +240,21 @@ handleJoyA: {
 	sta tile.temp0
 	lda #cia.JOY_DOWN
 	and tile.temp0
-	bne next0
+	bne checkUp
 	inc tile.mapPositionYTile
 	:c64_addConstToMem(16, tile.rasterOffset)
-next0:
+checkUp:
 	lda #cia.JOY_UP
 	and tile.temp0
-	bne next1
+	bne checkLeft
 	dec tile.mapPositionYTile
 	:c64_subConstFromMem(16, tile.rasterOffset)
-next1:
+checkLeft:
 	lda #cia.JOY_LEFT
 	and tile.temp0
-	bne next2
+	bne checkRight
 	dec tile.mapPositionXTile
-next2:
+checkRight:
 	lda #cia.JOY_RIGHT
 	and tile.temp0
 	bne next3
