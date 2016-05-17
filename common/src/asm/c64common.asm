@@ -42,14 +42,14 @@
 	sta low + 1
 }
 
-.macro c64_addMemByteToMem(byte, low, high) {
+.macro c64_addMemByteToMem(byte, low) {
 	clc
 	lda low
 	adc byte
 	sta low
-	lda high
+	lda low + 1
 	adc #$00
-	sta high
+	sta low + 1
 }
 
 .macro c64_addMemToMem(source, destination) {
@@ -88,4 +88,16 @@ next:
 	sta destination
 	lda source+1
 	sta destination+1
+}
+
+.macro c64_copyByte(source, destination) {
+	lda source
+	sta destination
+}
+
+.macro c64_incWord(destination) {
+	inc destination
+	bne over
+	inc destination + 1
+over:
 }
