@@ -42,7 +42,7 @@
 	sta low + 1
 }
 
-.macro c64_addMemByteToMem(byte, low) {
+.macro addMemToMem8(byte, low) {
 	clc
 	lda low
 	adc byte
@@ -52,7 +52,7 @@
 	sta low + 1
 }
 
-.macro c64_addMemToMem(source, destination) {
+.macro addMemToMem16(source, destination) {
 	clc
 	lda source
 	adc destination
@@ -72,7 +72,7 @@
 	sta destination + 1
 }
 
-.macro c64_multiple2Mem(low) {
+.macro mul2Mem16(low) {
 	clc
 	asl low
 	bcc next
@@ -83,21 +83,41 @@
 next:
 }
 
-.macro c64_copyWord(source, destination) {
+.macro copyWord(source, destination) {
 	lda source
 	sta destination
 	lda source+1
 	sta destination+1
 }
 
-.macro c64_copyByte(source, destination) {
+.macro copyByte(source, destination) {
 	lda source
 	sta destination
 }
 
-.macro c64_incWord(destination) {
+.macro incWord(destination) {
 	inc destination
 	bne over
 	inc destination + 1
 over:
+}
+
+.macro set8(mem, value) {
+	lda #value
+	sta mem
+}
+
+.macro zero8(mem) {
+	:set8(mem, 0)
+}
+
+.macro set16(mem, value) {
+	lda #<value
+	sta mem
+	lda #>value
+	sta mem + 1
+}
+
+.macro zero16(mem) {
+	:set16(mem, $0000)
 }

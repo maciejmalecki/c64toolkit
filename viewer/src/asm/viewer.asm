@@ -106,16 +106,16 @@ displayMap: {
 	// initialize screen pointer
 	:c64_setMem(SCREEN_0_MEM, tile.screenPointerLo)
 	// initialize map pointer
-	:c64_copyWord(tile.mapPointerLo, tile.tempMapPointerLo)
+	:copyWord(tile.mapPointerLo, tile.tempMapPointerLo)
 	// initialize color ram ptr
 	:c64_setMem(vic.COLOR_RAM, tile.colorRamPointerLo)
 	// rewind map to start position
-	:c64_addMemByteToMem(tile.mapPositionXTile, tile.tempMapPointerLo, tile.tempMapPointerHi)	
+	:addMemToMem8(tile.mapPositionXTile, tile.tempMapPointerLo)	
 	lda tile.mapPositionYTile
 	beq drawRow
 	tax
 rewindMap:
-	:c64_addMemByteToMem(tile.mapWidth, tile.tempMapPointerLo, tile.tempMapPointerHi)
+	:addMemToMem8(tile.mapWidth, tile.tempMapPointerLo)
 	dex
 	bne rewindMap
 	// initialize screen memory in transfers
@@ -307,10 +307,10 @@ nextCol:
 	lda tile.nextColor2
 	cmp #$FF
 	beq fireDashboard
-	:c64_copyWord(tile.nextTileSwitchingColor2Lo, tile.nextRasterSwitchingColorLo)
+	:copyWord(tile.nextTileSwitchingColor2Lo, tile.nextRasterSwitchingColorLo)
 	:c64_subMemFromMem(tile.rasterOffset, tile.nextRasterSwitchingColorLo)
 	bmi nextCol
-	:c64_copyWord(tile.nextRasterSwitchingColorLo, tile.currentRasterTemp)
+	:copyWord(tile.nextRasterSwitchingColorLo, tile.currentRasterTemp)
 	:c64_subConstFromMem(DASHBOARD_RASTER, tile.currentRasterTemp)
 	bpl fireDashboard
 	:vic_IRQ_EXIT(irqSwitchColor, tile.nextRasterSwitchingColorLo, true)
@@ -329,10 +329,10 @@ nextCol:
 	lda tile.nextColor2
 	cmp #$FF
 	beq fireDashboard
-	:c64_copyWord(tile.nextTileSwitchingColor2Lo, tile.nextRasterSwitchingColorLo)
+	:copyWord(tile.nextTileSwitchingColor2Lo, tile.nextRasterSwitchingColorLo)
 	:c64_subMemFromMem(tile.rasterOffset, tile.nextRasterSwitchingColorLo)
 	bmi nextCol
-	:c64_copyWord(tile.nextRasterSwitchingColorLo, tile.currentRasterTemp)
+	:copyWord(tile.nextRasterSwitchingColorLo, tile.currentRasterTemp)
 	:c64_subConstFromMem(DASHBOARD_RASTER, tile.currentRasterTemp)
 	bpl fireDashboard
 	:vic_IRQ_EXIT(irqSwitchColor, tile.nextRasterSwitchingColorLo, true)
