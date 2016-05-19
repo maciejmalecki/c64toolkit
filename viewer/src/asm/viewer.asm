@@ -82,7 +82,7 @@ initialize:
 	:cia_setVICBank(vic.BANK_2)
 	:vic_setMultiColorText(1)
 	:vic_configureTextMemory(0, 1)
-	:c64_setMem($0000, tile.rasterOffset)
+	:set16(tile.rasterOffset, 0)
 	cli
 	
 	lda vic.CONTROL_2
@@ -104,11 +104,11 @@ displayMap: {
 	sta tile.temp1 // current X pos in the screen
 	sta tile.temp2 // current Y pos in the screen
 	// initialize screen pointer
-	:c64_setMem(SCREEN_0_MEM, tile.screenPointerLo)
+	:set16(tile.screenPointerLo, SCREEN_0_MEM)
 	// initialize map pointer
 	:copyWord(tile.mapPointerLo, tile.tempMapPointerLo)
 	// initialize color ram ptr
-	:c64_setMem(vic.COLOR_RAM, tile.colorRamPointerLo)
+	:set16(tile.colorRamPointerLo, vic.COLOR_RAM)
 	// rewind map to start position
 	:addMemToMem8(tile.mapPositionXTile, tile.tempMapPointerLo)	
 	lda tile.mapPositionYTile
@@ -187,7 +187,7 @@ transfer3:
 	lda tile.temp0
 	cmp #20
 	beq if1
-	:c64_addConstToMem(1, tile.tempMapPointerLo)
+	:addConstToMem(1, tile.tempMapPointerLo)
 	jmp if2
 if1:
 	lda #$00
@@ -208,16 +208,16 @@ if2:
 	lda tile.temp1
 	cmp #40
 	beq if3
-	:c64_addConstToMem(2, tile.screenPointerLo)
-	:c64_addConstToMem(2, tile.colorRamPointerLo)
+	:addConstToMem(2, tile.screenPointerLo)
+	:addConstToMem(2, tile.colorRamPointerLo)
 	jmp if4
 if3:
 	inc tile.temp2
 	inc tile.temp2
 	lda #$00
 	sta tile.temp1
-	:c64_addConstToMem(42, tile.screenPointerLo)
-	:c64_addConstToMem(42, tile.colorRamPointerLo)
+	:addConstToMem(42, tile.screenPointerLo)
+	:addConstToMem(42, tile.colorRamPointerLo)
 if4:
 	lda tile.temp2
 	cmp #SCREEN_HEIGHT
@@ -242,7 +242,7 @@ handleJoyA: {
 	and tile.temp0
 	bne checkUp
 	inc tile.mapPositionYTile
-	:c64_addConstToMem(16, tile.rasterOffset)
+	:addConstToMem(16, tile.rasterOffset)
 checkUp:
 	lda #cia.JOY_UP
 	and tile.temp0

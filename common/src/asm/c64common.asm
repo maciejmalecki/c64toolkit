@@ -4,6 +4,24 @@
 .label MOS_6510_DIRECTION 	= $00
 .label MOS_6510_IO 			= $01
 
+// 16 temporary byte registers for common use
+.label temp0			= $F0
+.label temp1			= $F1
+.label temp2			= $F2
+.label temp3			= $F3
+.label temp4			= $F4
+.label temp5			= $F5
+.label temp6			= $F6
+.label temp7			= $F7
+.label temp8			= $F8
+.label temp9			= $F9
+.label temp10			= $FA
+.label temp11			= $FB
+.label temp12			= $FC
+.label temp13			= $FD
+.label temp14			= $FE
+.label temp15			= $FF
+
 .macro c64_configureMemory(config) {
 	lda c64.MOS_6510_IO
 	and #%11111000
@@ -15,14 +33,7 @@
  * Various memory operations
  * --------------------------------------------- */
 
-.macro c64_setMem(value, low) {
-	lda #<value
-	sta low
-	lda #>value
-	sta low+1
-}
-
-.macro c64_addConstToMem(value, low) {
+.macro addConstToMem(value, low) {
 	clc
 	lda low
 	adc #<value
@@ -73,14 +84,14 @@
 }
 
 .macro mul2Mem16(low) {
-	clc
-	asl low
-	bcc next
-	lda low + 1
-	asl
-	ora #%1
-	sta low + 1
-next:
+	clc			// 2
+	asl low		// 5
+	bcc next	// 2
+	lda low + 1	// 3
+	asl			// 2
+	ora #%1		// 2
+	sta low + 1	// 3
+next:			// =19
 }
 
 .macro copyWord(source, destination) {

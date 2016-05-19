@@ -10,27 +10,21 @@
 
 .const EMPTY_CHAR		= $00	// will be used to draw this part of screen where no background should be rendered
 
-.label screen0			= $02
-.label screen1			= $04
-.label mapX				= $06
-.label mapY				= $08	
-.label tileDefPtr		= $0A	
-.label tileAttrDefPtr	= $0C
-.label mapDefPtr		= $0E	
-.label mapStructPtr		= $10	
-.label scrollX			= $12	
-.label scrollY			= $13	
-.label mapWidth			= $14	
-.label mapHeight		= $15	
+.const HEADER_SIZE		= 13	// size of map structure definition header
+.const GLOBAL			= $02	// starting offset for global zero page registers reserved for background
 
-.label temp0			= $F0
-.label temp1			= $F1
-.label temp2			= $F2
-.label temp3			= $F3
-.label temp4			= $F4
-.label temp5			= $F5
-.label temp6			= $F6
-.label temp7			= $F7
+.label screen0			= GLOBAL + 0
+.label screen1			= GLOBAL + 2
+.label mapX				= GLOBAL + 4
+.label mapY				= GLOBAL + 6
+.label tileDefPtr		= GLOBAL + 8	
+.label tileAttrDefPtr	= GLOBAL + 10
+.label mapDefPtr		= GLOBAL + 12
+.label mapStructPtr		= GLOBAL + 14
+.label scrollX			= GLOBAL + 16
+.label scrollY			= GLOBAL + 17
+.label mapWidth			= GLOBAL + 18
+.label mapHeight		= GLOBAL + 19
 
 /*
  * For faster processing we will precalculate offset of each map row
@@ -48,20 +42,81 @@ mapRowOffsets:
  * - X - internally
  */
 precalcMapRowOffsets: {
-	ldx #0 													// X <- current map row number
-	:copyWord(mapStructPtr + O_MAP_DEF_OFFSET, t44.temp0) 	
-	:addMemToMem16(mapStructPtr, t44.temp0)					// temp0, temp1 <- current pointer to the map row
-	:copyWord(mapRowOffsets, t44.temp2)						// temp2, temp3 <- current map row offsets cell
-	:copyByte(mapStructPtr + O_WIDTH, t44.temp4)			// temp4 <- WIDTH of map
-	:copyByte(mapStructPtr + O_HEIGHT, t44.temp5)			// temp5 <- HEIGHT of map
-loop:
-	:copyWord(t44.temp0, t44.temp2)
-	:addMemToMem8(t44.temp4, t44.temp0)
-	:incWord(t44.temp2)
+	.const mapPtr = c64.temp0		
+	.const offsetsPtr = c64.temp2	
+	.const mapWidthB = c64.temp4	
+	.const mapHeightB = c64.temp5	
+
+	ldx #0 												// X <- current map row number
+	:copyWord(mapStructPtr + O_MAP_DEF_OFFSET, mapPtr) 	
+	:addMemToMem16(mapStructPtr, mapPtr)					
+	:addConstToMem(HEADER_SIZE, mapPtr)					// temp0, temp1 <- current pointer to the map row
+	:copyWord(mapRowOffsets, offsetsPtr)				// temp2, temp3 <- current map row offsets cell
+	:copyByte(mapStructPtr + O_WIDTH, mapWidthB)			// temp4 <- WIDTH of map
+	:copyByte(mapStructPtr + O_HEIGHT, mapHeightB)		// temp5 <- HEIGHT of map
+!:
+	:copyWord(mapPtr, offsetsPtr)
+	:addMemToMem8(mapWidthB, mapPtr)
+	:incWord(offsetsPtr)
+	:incWord(offsetsPtr)
 	inx
-	cpx t44.temp5
-	bne loop
+	cpx mapHeightB
+	bne !-
 	rts
+}
+
+/*
+ * Precalculated addresses of each tile.
+ */
+tileOffsets:
+	.fill 521, 0
+	
+/*
+ * SUBROUTINE:
+ * Precalculates addresses of each tile.
+ * - mapStructPtr
+ * Uses following registers:
+ * - A - internally
+ * - X - internally
+ */
+precalculateTileOffsets: {
+	.const tilePtr = c64.temp0
+	.const offsetsPtr = c64.temp2
+
+	ldx #0
+	:copyWord(mapStructPtr + HEADER_SIZE, tilePtr)	// temp0, temp1 <- pointer to tile definition structure
+	:copyWord(tileOffsets, offsetsPtr)						// temp2, temp3 <- current ptr to tileOffets array element
+!:
+	:copyWord(tilePtr, offsetsPtr)
+	:addConstToMem(16, tilePtr)
+	:incWord(offsetsPtr)
+	:incWord(offsetsPtr)
+	inx
+	bne !-
+	rts
+}
+
+/*
+ * Fetches one byte value according to lookup table (bufferPtr). Index within the table is specified
+ * tempPtr. After execution, tempPtr will contain word size relative pointer inside lookup table and
+ */
+.macro fetchPrecalculatedPtr(bufferPtr, tempPtr) {
+	:mul2Mem16(tempPtr)
+	ldx tempPtr
+	lda #%00000001
+	bit tempPtr + 1
+	bne !+
+	lda bufferPtr + 256, x
+	sta tempPtr
+	lda bufferPtr + 257, x
+	sta tempPtr + 1
+	jmp do
+!:
+	lda bufferPtr, x
+	sta tempPtr
+	lda bufferPtr + 1, x
+	sta tempPtr + 1
+do:
 }
 
 /*
@@ -81,25 +136,16 @@ loop:
 	cmp t44.mapWidth										// should we display at all
 	bpl	end
 
-// do the needful
+// do the needful, find tile definition to be drawn
 	:copyByte(t44.mapY + 1, t44.temp0)
 	:zero8(t44.temp1)
-	:mul2Mem16(t44.temp0)									// temp0, temp1 <- current index of first map row to be displayed
-	ldx t44.temp0
-	lda #%00000001
-	bit t44.temp1
-	bne less256
-	lda mapRowOffsets + 256, x
-	sta t44.temp0
-	lda mapRowOffsets + 257, x
-	sta t44.temp1											// temp0, temp1 <- current Y based pointer to start row of the map
-	jmp do1
-less256:
-	lda mapRowOffsets, x
-	sta t44.temp0
-	lda mapRowOffsets + 1, x
-	sta t44.temp1											// temp0, temp1 <- current Y based pointer to start row of the map
-do1:
-	:addMemToMem8(t44.mapX + 1, t44.temp0)					// temp0, temp1 <- address of tile number that should be rendered first
+	:fetchPrecalculatedPtr(mapRowOffsets, t44.temp0)
+	:addMemToMem8(t44.mapX + 1, t44.temp0)					// temp0, temp1 <- address of tile number that should be rendered
+	ldy #0
+	lda (t44.temp0), y										// A <- id of the tile number to be displayed
+	sta t44.temp2
+	:zero8(t44.temp3)
+	:fetchPrecalculatedPtr(tileOffsets, t44.temp2)			// temp2, temp3 <- address of tile definition that should be rendered
+// todo
 end:
 }
