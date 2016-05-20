@@ -3,7 +3,7 @@
 .import source "vic.asm"
 .import source "c64common.asm"
 
-.const HEADER_SIZE	= 13	// size of map structure definition header
+.label HEADER_SIZE	= 13	// size of map structure definition header
 
 .const O_CONTROL				= 0
 .const O_WIDTH 					= 1
@@ -15,8 +15,8 @@
 .const O_ENTRY_DEF_OFFSET		= 9
 .const O_COLOR_SWITCH_OFFSET	= 11
 
-.const SCREEN_HEIGHT	= 20	// 20 rows of playfield
-.const EMPTY_CHAR		= $00	// will be used to draw this part of screen where no background should be rendered
+.label SCREEN_HEIGHT	= 20	// 20 rows of playfield
+.label EMPTY_CHAR		= $00	// will be used to draw this part of screen where no background should be rendered
 
 .const GLOBAL			= $02	// starting offset for global zero page registers reserved for background
 .label screen0			= GLOBAL + 0
@@ -189,16 +189,18 @@ do:
 	.const tileScreenPtr = c64.temp8
 	
 // initial checking...
+
 	lda t44.mapY + 1									
 	cmp t44.mapHeight										// should we display at all
-	bpl toEnd
+	bmi toEnd
 	lda t44.mapX + 1
 	cmp t44.mapWidth										// should we display at all
-	bpl	toEnd
+	bmi	toEnd
 	jmp !+
 toEnd:
 	jmp end
 !:
+
 
 // find right edge
 	lda t44.mapWidth
@@ -208,7 +210,7 @@ toEnd:
 	bpl !+
 	lda #10
 !:
-	sta t44.rightEdgeB
+	sta rightEdgeB
 	
 // find bottom edge
 	lda t44.mapHeight
@@ -218,24 +220,24 @@ toEnd:
 	bpl !+
 	lda #[SCREEN_HEIGHT / 4]
 !:
-	sta t44.bottomEdgeB
+	sta bottomEdgeB
 
 // do the needful, find tile definition to be drawn
-	:c64_clearScreen(screenPtr, EMPTY_CHAR)
+	:c64_clearScreen(screenPtr, t44.EMPTY_CHAR)
 	:copyWord(screenPtr, tileScreenPtr)
 	:copyWord(screenPtr, currentScreenPtr + 1)					// temp4, temp5 <- initalized with top left char of the screen
 	:zero8(tileXCounterB)
 	:zero8(tileYCounterB)
 	:copyByte(t44.mapY + 1, currentMapPtr)
 	:zero8(currentMapPtr + 1)
-	:fetchPrecalculatedPtr(mapRowOffsets, currentMapPtr)
+	:fetchPrecalculatedPtr(t44.mapRowOffsets, currentMapPtr)
 	:addMemToMem8(t44.mapX + 1, currentMapPtr)				// temp0, temp1 <- address of tile number that should be rendered
 nextTile:
 	ldy tileXCounterB
 	lda (currentMapPtr), y									// A <- id of the tile number to be displayed
 	sta currentTileDefPtr
 	:zero8(currentTileDefPtr + 1)
-	:fetchPrecalculatedPtr(tileOffsets, currentTileDefPtr)	// temp2, temp3 <- address of tile definition that should be rendered
+	:fetchPrecalculatedPtr(t44.tileOffsets, currentTileDefPtr)	// temp2, temp3 <- address of tile definition that should be rendered
 	ldx #0
 	ldy #0
 !loop:
@@ -270,7 +272,7 @@ nextRow:
 	cmp bottomEdgeB
 	beq end
 	
-	:addMemToMem8(mapWidth, currentMapPtr)
+	:addMemToMem8(t44.mapWidth, currentMapPtr)
 	:zero8(tileXCounterB)
 	:addConstToMem(4 + 3*40, tileScreenPtr)
 	jmp nextTile
