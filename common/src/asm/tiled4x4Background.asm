@@ -8,6 +8,8 @@
 .const O_HEIGHT 		= $2
 .const O_MAP_DEF_OFFSET = $7
 
+.const SCREEN_HEIGHT	= 20
+
 .const EMPTY_CHAR		= $00	// will be used to draw this part of screen where no background should be rendered
 
 .const HEADER_SIZE		= 13	// size of map structure definition header
@@ -124,28 +126,110 @@ do:
  * - mapX
  * - mapWidth
  * - mapHeight
+ * Temporary variables:
+ * - temp0, temp1
+ * - temp2, temp3
+ * - temp4
+ * - temp5
+ * - temp6
+ * - temp7
+ * - temp8, temp9
  */
 .macro displayMap(screenPtr) {
-	:c64_clearScreen(screenPtr, EMPTY_CHAR)
+	.const currentMapPtr = c64.temp0
+	.const currentTileDefPtr = c64.temp2
+	.const tileXCounterB = c64.temp4
+	.const tileYCounterB = c64.temp5
+	.const rightEdgeB = c64.temp6
+	.const bottomEdgeB = c64.temp7
+	.const tileScreenPtr = c64.temp8
 	
 // initial checking...
 	lda t44.mapY + 1									
 	cmp t44.mapHeight										// should we display at all
-	bpl end
+	bpl toEnd
 	lda t44.mapX + 1
 	cmp t44.mapWidth										// should we display at all
-	bpl	end
+	bpl	toEnd
+	jmp !+
+toEnd:
+	jmp end
+!:
+
+// find right edge
+	lda t44.mapWidth
+	sec
+	sbc t44.mapX
+	cmp #10
+	bpl !+
+	lda #10
+!:
+	sta t44.rightEdgeB
+	
+// find bottom edge
+	lda t44.mapHeight
+	sec
+	sbc t44.mapY
+	cmp #[SCREEN_HEIGHT / 4]
+	bpl !+
+	lda #[SCREEN_HEIGHT / 4]
+!:
+	sta t44.bottomEdgeB
 
 // do the needful, find tile definition to be drawn
-	:copyByte(t44.mapY + 1, t44.temp0)
-	:zero8(t44.temp1)
-	:fetchPrecalculatedPtr(mapRowOffsets, t44.temp0)
-	:addMemToMem8(t44.mapX + 1, t44.temp0)					// temp0, temp1 <- address of tile number that should be rendered
+	:c64_clearScreen(screenPtr, EMPTY_CHAR)
+	:copyWord(screenPtr, tileScreenPtr)
+	:copyWord(screenPtr, currentScreenPtr + 1)					// temp4, temp5 <- initalized with top left char of the screen
+	:zero8(tileXCounterB)
+	:zero8(tileYCounterB)
+	:copyByte(t44.mapY + 1, currentMapPtr)
+	:zero8(currentMapPtr + 1)
+	:fetchPrecalculatedPtr(mapRowOffsets, currentMapPtr)
+	:addMemToMem8(t44.mapX + 1, currentMapPtr)				// temp0, temp1 <- address of tile number that should be rendered
+nextTile:
+	ldy tileXCounterB
+	lda (currentMapPtr), y									// A <- id of the tile number to be displayed
+	sta currentTileDefPtr
+	:zero8(currentTileDefPtr + 1)
+	:fetchPrecalculatedPtr(tileOffsets, currentTileDefPtr)	// temp2, temp3 <- address of tile definition that should be rendered
+	ldx #0
 	ldy #0
-	lda (t44.temp0), y										// A <- id of the tile number to be displayed
-	sta t44.temp2
-	:zero8(t44.temp3)
-	:fetchPrecalculatedPtr(tileOffsets, t44.temp2)			// temp2, temp3 <- address of tile definition that should be rendered
-// todo
+!loop:
+	lda (currentTileDefPtr), y
+currentScreenPtr:											// code anchor for self-modified
+	sta $FFFF, x
+	iny
+	tya
+	cmp #16
+	beq !+
+	inx
+	txa
+	cmp #4
+	bne !loop-
+	ldx #0
+	:addConstToMem(40, currentScreenPtr)
+	jmp !loop-
+!:
+	inc tileXCounterB
+	lda tileXCounterB
+	cmp rightEdgeB
+	beq nextRow
+	
+	:addConstToMem(4, tileScreenPtr)						// progress tile screen pointer to draw new tile
+	:copyWord(tileScreenPtr, currentScreenPtr)				// reset current drawing pointer to new tile
+	
+	jmp nextTile
+	
+nextRow:
+	inc tileYCounterB
+	lda tileYCounterB
+	cmp bottomEdgeB
+	beq end
+	
+	:addMemToMem8(mapWidth, currentMapPtr)
+	:zero8(tileXCounterB)
+	:addConstToMem(4 + 3*40, tileScreenPtr)
+	jmp nextTile
+	
 end:
 }
