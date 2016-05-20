@@ -4,23 +4,45 @@
 .label MOS_6510_DIRECTION 	= $00
 .label MOS_6510_IO 			= $01
 
-// 16 temporary byte registers for common use
-.label temp0			= $F0
-.label temp1			= $F1
-.label temp2			= $F2
-.label temp3			= $F3
-.label temp4			= $F4
-.label temp5			= $F5
-.label temp6			= $F6
-.label temp7			= $F7
-.label temp8			= $F8
-.label temp9			= $F9
-.label temp10			= $FA
-.label temp11			= $FB
-.label temp12			= $FC
-.label temp13			= $FD
-.label temp14			= $FE
-.label temp15			= $FF
+/* 
+ * 4 temporary byte registers for subroutine call arguments.
+ * Each subroutine is required to copy these variables to its 
+ * local variable space before processing unless not calling
+ * another function. Do not use this mechanism in interrupt 
+ * handlers.
+ */
+.const FUNC_OFFSET		= $EC
+.label func0			= FUNC_OFFSET + 0
+.label func1			= FUNC_OFFSET + 1
+.label func2			= FUNC_OFFSET + 2
+.label func3			= FUNC_OFFSET + 3
+
+/* 
+ * 16 temporary byte registers for common use.
+ * This memory should be used for temporary, local
+ * variables for macros or subroutines.
+ *
+ * WARNING: this data space is not stored when calling
+ * subroutine or macro thus it is not a real local variable
+ * space.
+ */
+.const TEMP_OFFSET		= $F0
+.label temp0			= TEMP_OFFSET + 0
+.label temp1			= TEMP_OFFSET + 1
+.label temp2			= TEMP_OFFSET + 2
+.label temp3			= TEMP_OFFSET + 3
+.label temp4			= TEMP_OFFSET + 4
+.label temp5			= TEMP_OFFSET + 5
+.label temp6			= TEMP_OFFSET + 6
+.label temp7			= TEMP_OFFSET + 7
+.label temp8			= TEMP_OFFSET + 8
+.label temp9			= TEMP_OFFSET + 9
+.label temp10			= TEMP_OFFSET + 10
+.label temp11			= TEMP_OFFSET + 11
+.label temp12			= TEMP_OFFSET + 12
+.label temp13			= TEMP_OFFSET + 13
+.label temp14			= TEMP_OFFSET + 14
+.label temp15			= TEMP_OFFSET + 15
 
 .macro c64_configureMemory(config) {
 	lda c64.MOS_6510_IO

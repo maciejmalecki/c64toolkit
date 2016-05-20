@@ -3,18 +3,22 @@
 .import source "vic.asm"
 .import source "c64common.asm"
 
-.const O_CONTROL		= $0
-.const O_WIDTH 			= $1
-.const O_HEIGHT 		= $2
-.const O_MAP_DEF_OFFSET = $7
+.const HEADER_SIZE	= 13	// size of map structure definition header
 
-.const SCREEN_HEIGHT	= 20
+.const O_CONTROL				= 0
+.const O_WIDTH 					= 1
+.const O_HEIGHT 				= 2
+.const O_BG_COLOR_2				= 3
+.const O_CHARSET				= 4
+.const O_TILE_ATTR_OFFSET 		= 5
+.const O_MAP_DEF_OFFSET 		= 7
+.const O_ENTRY_DEF_OFFSET		= 9
+.const O_COLOR_SWITCH_OFFSET	= 11
 
+.const SCREEN_HEIGHT	= 20	// 20 rows of playfield
 .const EMPTY_CHAR		= $00	// will be used to draw this part of screen where no background should be rendered
 
-.const HEADER_SIZE		= 13	// size of map structure definition header
 .const GLOBAL			= $02	// starting offset for global zero page registers reserved for background
-
 .label screen0			= GLOBAL + 0
 .label screen1			= GLOBAL + 2
 .label mapX				= GLOBAL + 4
@@ -27,6 +31,41 @@
 .label scrollY			= GLOBAL + 17
 .label mapWidth			= GLOBAL + 18
 .label mapHeight		= GLOBAL + 19
+
+/*
+ * SUBROUTINE:
+ * Initialize map structure using given map structure definition pointer.
+ * 
+ * In:
+ * - X - low address of map structure
+ * - Y - hi address of map structure
+ */
+initializeMap4x4: {
+
+	txa
+	sta t44.mapStructPtr
+	tya
+	sta t44.mapStructPtr + 1					
+	
+	:zero8(t44.mapX)
+	:zero8(t44.mapY)
+	:headerRewind()
+	:headerSkip8()		// CONTROL
+	:read8(mapWidth)
+	:read8(mapHeight)
+	:read8(vic.BG_COL_2)
+	:headerSkip8()		// Charset not used for now...
+	:readAndCalculateAddress(t44.tileAttrDefPtr)
+	:readAndCalculateAddress(t44.mapDefPtr)
+	
+	:copyWord(t44.mapStructPtr, t44.tileDefPtr)
+	:addConstToMem(HEADER_SIZE, t44.tileDefPtr)
+	
+	jsr precalcMapRowOffsets
+	jsr precalculateTileOffsets
+	
+	rts
+}
 
 /*
  * For faster processing we will precalculate offset of each map row
@@ -42,6 +81,9 @@ mapRowOffsets:
  * Uses following registers:
  * - A - internally
  * - X - internally
+ *
+ * Used temps:
+ * temp0, 1, 2, 3, 4, 5
  */
 precalcMapRowOffsets: {
 	.const mapPtr = c64.temp0		
@@ -50,12 +92,12 @@ precalcMapRowOffsets: {
 	.const mapHeightB = c64.temp5	
 
 	ldx #0 												// X <- current map row number
-	:copyWord(mapStructPtr + O_MAP_DEF_OFFSET, mapPtr) 	
+	:copyWord(t44.mapDefPtr, mapPtr) 	
 	:addMemToMem16(mapStructPtr, mapPtr)					
 	:addConstToMem(HEADER_SIZE, mapPtr)					// temp0, temp1 <- current pointer to the map row
 	:copyWord(mapRowOffsets, offsetsPtr)				// temp2, temp3 <- current map row offsets cell
-	:copyByte(mapStructPtr + O_WIDTH, mapWidthB)			// temp4 <- WIDTH of map
-	:copyByte(mapStructPtr + O_HEIGHT, mapHeightB)		// temp5 <- HEIGHT of map
+	:copyByte(t44.mapWidth, mapWidthB)					// temp4 <- WIDTH of map
+	:copyByte(t44.mapHeight, mapHeightB)				// temp5 <- HEIGHT of map
 !:
 	:copyWord(mapPtr, offsetsPtr)
 	:addMemToMem8(mapWidthB, mapPtr)
@@ -80,13 +122,15 @@ tileOffsets:
  * Uses following registers:
  * - A - internally
  * - X - internally
+ * Used temps:
+ * temp0, 1, 2, 3
  */
 precalculateTileOffsets: {
 	.const tilePtr = c64.temp0
 	.const offsetsPtr = c64.temp2
 
 	ldx #0
-	:copyWord(mapStructPtr + HEADER_SIZE, tilePtr)	// temp0, temp1 <- pointer to tile definition structure
+	:copyWord(t44.tileDefPtr, tilePtr)						// temp0, temp1 <- pointer to tile definition structure
 	:copyWord(tileOffsets, offsetsPtr)						// temp2, temp3 <- current ptr to tileOffets array element
 !:
 	:copyWord(tilePtr, offsetsPtr)
@@ -135,7 +179,7 @@ do:
  * - temp7
  * - temp8, temp9
  */
-.macro displayMap(screenPtr) {
+.macro displayMap4x4(screenPtr) {
 	.const currentMapPtr = c64.temp0
 	.const currentTileDefPtr = c64.temp2
 	.const tileXCounterB = c64.temp4
@@ -232,4 +276,34 @@ nextRow:
 	jmp nextTile
 	
 end:
+}
+
+// HEADER MANIPULATION
+.macro headerRewind() {
+	ldy #0
+}
+
+.macro headerSkip8() {
+	iny 
+}
+
+.macro read8(target) {
+	lda (t44.mapStructPtr), y
+	sta target
+	iny
+}
+
+.macro read16(target) {
+	:read8(target)
+	:read8(target+1)
+}
+
+.macro readAndCalculateAddress(target) {
+	lda (t44.mapStructPtr), y
+	sta target
+	iny
+	lda (t44.mapStructPtr), y
+	sta target + 1
+	iny
+	:addMemToMem16(t44.mapStructPtr, target)
 }
