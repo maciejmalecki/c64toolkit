@@ -21,7 +21,7 @@
 .const PLAYFIELD_RASTER = 251
 
 // charset data
-.var charset = LoadBinary("../gfx/charset.bin")
+.var charset = LoadBinary("../gfx/charset4x4.bin")
 .pc = CHARSET_0_MEM	"Charset" .fill charset.getSize(), charset.get(i)
 
 .pc = $0801 "Basic Upstart"
@@ -88,6 +88,12 @@ initialize:
 	// configure colors
 	lda #WHITE
 	sta vic.BORDER_COL
+	lda #LIGHT_BLUE
+	sta vic.BG_COL_0
+	lda #GREY
+	sta vic.BG_COL_1
+	lda #GREEN
+	sta vic.BG_COL_2
 	rts
 	
 displayMap: {
@@ -108,22 +114,22 @@ handleJoyA: {
 	lda #cia.JOY_DOWN
 	and c64.temp0
 	bne checkUp
-	inc t44.mapY
+	inc t44.mapY + 1
 checkUp:
 	lda #cia.JOY_UP
 	and c64.temp0
 	bne checkLeft
-	dec t44.mapY
+	dec t44.mapY + 1
 checkLeft:
 	lda #cia.JOY_LEFT
 	and c64.temp0
 	bne checkRight
-	dec t44.mapX
+	dec t44.mapX + 1
 checkRight:
 	lda #cia.JOY_RIGHT
 	and c64.temp0
 	bne next3
-	inc t44.mapX
+	inc t44.mapX + 1
 next3:
 	jsr displayMap
 	jsr displayDashboardVars
@@ -162,8 +168,8 @@ displayDashboard: {
 }
 
 displayDashboardVars: {
-	:vic_outByteHex(t44.mapX, SCREEN_2_MEM, 11, 21, WHITE)
-	:vic_outByteHex(t44.mapY, SCREEN_2_MEM, 15, 21, WHITE)
+	:vic_outByteHex(t44.mapX + 1, SCREEN_2_MEM, 11, 21, WHITE)
+	:vic_outByteHex(t44.mapY + 1, SCREEN_2_MEM, 15, 21, WHITE)
 	:vic_outByteHex(t44.mapStructPtr + 1, SCREEN_2_MEM, 32, 20, WHITE)
 	:vic_outByteHex(t44.mapStructPtr, SCREEN_2_MEM, 34, 20, WHITE)
 	:vic_outByteHex(t44.tileDefPtr + 1, SCREEN_2_MEM, 32, 21, WHITE)
@@ -180,8 +186,8 @@ displayDashboardVars: {
 }
 
 dashboardLabel:
-	.text "                           MSD:$____    "
-	.text " Tile X,Y:$__,$__          TSD:$____    "
+	.text "                           STR:$____    "
+	.text " Tile X,Y:$__,$__          TIL:$____    "
 	.text " Map  W,H:$__,$__          TAD:$____    "
 	.text "                           MAP:$____  by"
 	.text "Use joy 2 to scroll        CST:$____  mm"

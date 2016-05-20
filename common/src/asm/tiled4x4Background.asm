@@ -47,8 +47,8 @@ initializeMap4x4: {
 	tya
 	sta t44.mapStructPtr + 1					
 	
-	:zero8(t44.mapX)
-	:zero8(t44.mapY)
+	:zero16(t44.mapX)
+	:zero16(t44.mapY)
 	:headerRewind()
 	:headerSkip8()		// CONTROL
 	:read8(mapWidth)
@@ -73,6 +73,8 @@ initializeMap4x4: {
 mapRowOffsets:
 	.fill 512, 0
 	
+.print mapRowOffsets
+	
 /*
  * SUBROUTINE:
  * Precalculates content of t44_mapRowOffsets based on following settings:
@@ -90,16 +92,21 @@ precalcMapRowOffsets: {
 	.const offsetsPtr = c64.temp2	
 	.const mapWidthB = c64.temp4	
 	.const mapHeightB = c64.temp5	
-
+	
 	ldx #0 												// X <- current map row number
 	:copyWord(t44.mapDefPtr, mapPtr) 	
 	:addMemToMem16(mapStructPtr, mapPtr)					
 	:addConstToMem(HEADER_SIZE, mapPtr)					// temp0, temp1 <- current pointer to the map row
-	:copyWord(mapRowOffsets, offsetsPtr)				// temp2, temp3 <- current map row offsets cell
+	:set16(offsetsPtr, mapRowOffsets)					// temp2, temp3 <- current map row offsets cell
 	:copyByte(t44.mapWidth, mapWidthB)					// temp4 <- WIDTH of map
 	:copyByte(t44.mapHeight, mapHeightB)				// temp5 <- HEIGHT of map
 !:
-	:copyWord(mapPtr, offsetsPtr)
+	ldy #0
+	lda mapPtr
+	sta (offsetsPtr), y
+	iny
+	lda mapPtr + 1
+	sta (offsetsPtr), y
 	:addMemToMem8(mapWidthB, mapPtr)
 	:incWord(offsetsPtr)
 	:incWord(offsetsPtr)
@@ -131,9 +138,14 @@ precalculateTileOffsets: {
 
 	ldx #0
 	:copyWord(t44.tileDefPtr, tilePtr)						// temp0, temp1 <- pointer to tile definition structure
-	:copyWord(tileOffsets, offsetsPtr)						// temp2, temp3 <- current ptr to tileOffets array element
+	:set16(offsetsPtr, tileOffsets)							// temp2, temp3 <- current ptr to tileOffets array element
 !:
-	:copyWord(tilePtr, offsetsPtr)
+	ldy #0
+	lda tilePtr
+	sta (offsetsPtr), y
+	iny
+	lda tilePtr + 1
+	sta (offsetsPtr), y
 	:addConstToMem(16, tilePtr)
 	:incWord(offsetsPtr)
 	:incWord(offsetsPtr)
@@ -192,10 +204,10 @@ do:
 
 	lda t44.mapY + 1									
 	cmp t44.mapHeight										// should we display at all
-	bmi toEnd
+	bpl toEnd
 	lda t44.mapX + 1
 	cmp t44.mapWidth										// should we display at all
-	bmi	toEnd
+	bpl	toEnd
 	jmp !+
 toEnd:
 	jmp end
@@ -207,7 +219,7 @@ toEnd:
 	sec
 	sbc t44.mapX
 	cmp #10
-	bpl !+
+	bmi !+
 	lda #10
 !:
 	sta rightEdgeB
@@ -217,15 +229,17 @@ toEnd:
 	sec
 	sbc t44.mapY
 	cmp #[SCREEN_HEIGHT / 4]
-	bpl !+
+	bmi !+
 	lda #[SCREEN_HEIGHT / 4]
 !:
 	sta bottomEdgeB
 
+
+
 // do the needful, find tile definition to be drawn
 	:c64_clearScreen(screenPtr, t44.EMPTY_CHAR)
-	:copyWord(screenPtr, tileScreenPtr)
-	:copyWord(screenPtr, currentScreenPtr + 1)					// temp4, temp5 <- initalized with top left char of the screen
+	:set16(tileScreenPtr, screenPtr)
+	:set16(currentScreenPtr + 1, screenPtr)					// temp4, temp5 <- initalized with top left char of the screen
 	:zero8(tileXCounterB)
 	:zero8(tileYCounterB)
 	:copyByte(t44.mapY + 1, currentMapPtr)
@@ -247,29 +261,30 @@ currentScreenPtr:											// code anchor for self-modified
 	iny
 	tya
 	cmp #16
-	beq !+
+	beq next
 	inx
 	txa
 	cmp #4
 	bne !loop-
 	ldx #0
-	:addConstToMem(40, currentScreenPtr)
+	:addConstToMem(40, currentScreenPtr + 1)
 	jmp !loop-
-!:
+next:
+	ldy #0
 	inc tileXCounterB
 	lda tileXCounterB
-	cmp rightEdgeB
+	cmp #10//rightEdgeB
 	beq nextRow
 	
 	:addConstToMem(4, tileScreenPtr)						// progress tile screen pointer to draw new tile
-	:copyWord(tileScreenPtr, currentScreenPtr)				// reset current drawing pointer to new tile
+	:copyWord(tileScreenPtr, currentScreenPtr + 1)				// reset current drawing pointer to new tile
 	
 	jmp nextTile
 	
 nextRow:
 	inc tileYCounterB
 	lda tileYCounterB
-	cmp bottomEdgeB
+	cmp #5//bottomEdgeB
 	beq end
 	
 	:addMemToMem8(t44.mapWidth, currentMapPtr)
