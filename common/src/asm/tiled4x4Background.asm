@@ -95,18 +95,11 @@ precalcMapRowOffsets: {
 	
 	ldx #0 												// X <- current map row number
 	:copyWord(t44.mapDefPtr, mapPtr) 	
-	:addMemToMem16(mapStructPtr, mapPtr)					
-	:addConstToMem(HEADER_SIZE, mapPtr)					// temp0, temp1 <- current pointer to the map row
 	:set16(offsetsPtr, mapRowOffsets)					// temp2, temp3 <- current map row offsets cell
 	:copyByte(t44.mapWidth, mapWidthB)					// temp4 <- WIDTH of map
 	:copyByte(t44.mapHeight, mapHeightB)				// temp5 <- HEIGHT of map
 !:
-	ldy #0
-	lda mapPtr
-	sta (offsetsPtr), y
-	iny
-	lda mapPtr + 1
-	sta (offsetsPtr), y
+	:copyWordIndirect(mapPtr, offsetsPtr)
 	:addMemToMem8(mapWidthB, mapPtr)
 	:incWord(offsetsPtr)
 	:incWord(offsetsPtr)
@@ -121,6 +114,8 @@ precalcMapRowOffsets: {
  */
 tileOffsets:
 	.fill 521, 0
+	
+.print tileOffsets
 	
 /*
  * SUBROUTINE:
@@ -140,12 +135,7 @@ precalculateTileOffsets: {
 	:copyWord(t44.tileDefPtr, tilePtr)						// temp0, temp1 <- pointer to tile definition structure
 	:set16(offsetsPtr, tileOffsets)							// temp2, temp3 <- current ptr to tileOffets array element
 !:
-	ldy #0
-	lda tilePtr
-	sta (offsetsPtr), y
-	iny
-	lda tilePtr + 1
-	sta (offsetsPtr), y
+	:copyWordIndirect(tilePtr, offsetsPtr)
 	:addConstToMem(16, tilePtr)
 	:incWord(offsetsPtr)
 	:incWord(offsetsPtr)
@@ -163,7 +153,7 @@ precalculateTileOffsets: {
 	ldx tempPtr
 	lda #%00000001
 	bit tempPtr + 1
-	bne !+
+	beq !+
 	lda bufferPtr + 256, x
 	sta tempPtr
 	lda bufferPtr + 257, x
@@ -237,7 +227,6 @@ toEnd:
 
 
 // do the needful, find tile definition to be drawn
-	:c64_clearScreen(screenPtr, t44.EMPTY_CHAR)
 	:set16(tileScreenPtr, screenPtr)
 	:set16(currentScreenPtr + 1, screenPtr)					// temp4, temp5 <- initalized with top left char of the screen
 	:zero8(tileXCounterB)
@@ -263,7 +252,7 @@ currentScreenPtr:											// code anchor for self-modified
 	cmp #16
 	beq next
 	inx
-	txa
+	txa                     
 	cmp #4
 	bne !loop-
 	ldx #0
@@ -273,7 +262,7 @@ next:
 	ldy #0
 	inc tileXCounterB
 	lda tileXCounterB
-	cmp #10//rightEdgeB
+	cmp rightEdgeB
 	beq nextRow
 	
 	:addConstToMem(4, tileScreenPtr)						// progress tile screen pointer to draw new tile
@@ -284,7 +273,7 @@ next:
 nextRow:
 	inc tileYCounterB
 	lda tileYCounterB
-	cmp #5//bottomEdgeB
+	cmp bottomEdgeB
 	beq end
 	
 	:addMemToMem8(t44.mapWidth, currentMapPtr)

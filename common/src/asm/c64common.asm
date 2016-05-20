@@ -123,6 +123,15 @@ next:			// =19
 	sta destination+1
 }
 
+.macro copyWordIndirect(source, destinationPointer) {
+	ldy #0
+	lda source
+	sta (destinationPointer), y
+	iny
+	lda source + 1
+	sta (destinationPointer), y
+}
+
 .macro copyByte(source, destination) {
 	lda source
 	sta destination
