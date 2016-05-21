@@ -189,6 +189,8 @@ do:
 	.const rightEdgeB = c64.temp6
 	.const bottomEdgeB = c64.temp7
 	.const tileScreenPtr = c64.temp8
+	.const tileNumber = c64.temp10
+	.const colorRamPtr = c64.temp11
 	
 // initial checking...
 
@@ -227,6 +229,7 @@ toEnd:
 
 
 // do the needful, find tile definition to be drawn
+	:set16(colorRamPtr, vic.COLOR_RAM)
 	:set16(tileScreenPtr, screenPtr)
 	:set16(currentScreenPtr + 1, screenPtr)					// temp4, temp5 <- initalized with top left char of the screen
 	:zero8(tileXCounterB)
@@ -238,6 +241,7 @@ toEnd:
 nextTile:
 	ldy tileXCounterB
 	lda (currentMapPtr), y									// A <- id of the tile number to be displayed
+	sta tileNumber
 	sta currentTileDefPtr
 	:zero8(currentTileDefPtr + 1)
 	:fetchPrecalculatedPtr(t44.tileOffsets, currentTileDefPtr)	// temp2, temp3 <- address of tile definition that should be rendered
@@ -259,6 +263,18 @@ currentScreenPtr:											// code anchor for self-modified
 	:addConstToMem(40, currentScreenPtr + 1)
 	jmp !loop-
 next:
+	// fill color RAM
+	ldy tileNumber
+	lda (t44.tileAttrDefPtr), y
+	.for (var j = 0; j < 4; j++) {
+		ldy #[j * 40]
+		.for (var i = 0; i < 4; i++) {
+			sta (colorRamPtr), y
+			iny
+		}
+	}
+	:addConstToMem(4, colorRamPtr)
+	// advance to the next tile
 	:addConstToMem(4, tileScreenPtr)						// progress tile screen pointer to draw new tile
 	:copyWord(tileScreenPtr, currentScreenPtr + 1)				// reset current drawing pointer to new tile
 	ldy #0
@@ -266,8 +282,6 @@ next:
 	lda tileXCounterB
 	cmp rightEdgeB
 	beq nextRow
-	
-	
 	jmp nextTile
 	
 nextRow:
@@ -276,6 +290,7 @@ nextRow:
 	cmp bottomEdgeB
 	beq end
 	
+	:addConstToMem(3*40, colorRamPtr)
 	:addMemToMem8(t44.mapWidth, currentMapPtr)
 	:zero8(tileXCounterB)
 	:addConstToMem(3*40, tileScreenPtr)
