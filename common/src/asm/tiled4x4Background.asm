@@ -259,14 +259,14 @@ currentScreenPtr:											// code anchor for self-modified
 	:addConstToMem(40, currentScreenPtr + 1)
 	jmp !loop-
 next:
+	:addConstToMem(4, tileScreenPtr)						// progress tile screen pointer to draw new tile
+	:copyWord(tileScreenPtr, currentScreenPtr + 1)				// reset current drawing pointer to new tile
 	ldy #0
 	inc tileXCounterB
 	lda tileXCounterB
 	cmp rightEdgeB
 	beq nextRow
 	
-	:addConstToMem(4, tileScreenPtr)						// progress tile screen pointer to draw new tile
-	:copyWord(tileScreenPtr, currentScreenPtr + 1)				// reset current drawing pointer to new tile
 	
 	jmp nextTile
 	
@@ -278,7 +278,8 @@ nextRow:
 	
 	:addMemToMem8(t44.mapWidth, currentMapPtr)
 	:zero8(tileXCounterB)
-	:addConstToMem(4 + 3*40, tileScreenPtr)
+	:addConstToMem(3*40, tileScreenPtr)
+	:copyWord(tileScreenPtr, currentScreenPtr + 1)
 	jmp nextTile
 	
 end:
