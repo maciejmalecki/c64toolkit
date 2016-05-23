@@ -76,7 +76,7 @@ initialize:
 	lda #>irqFreeze
 	sta $FFFB
 
-	:c64_configureMemory(%101)
+	:configureMemory(%101)
 	:cia_setVICBank(vic.BANK_2)
 	:vic_setMultiColorText(1)
 	:vic_configureTextMemory(0, 1)

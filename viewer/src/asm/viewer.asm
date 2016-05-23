@@ -78,7 +78,7 @@ initialize:
 	lda #>irqFreeze
 	sta $FFFB
 
-	:c64_configureMemory(%101)
+	:configureMemory(%101)
 	:cia_setVICBank(vic.BANK_2)
 	:vic_setMultiColorText(1)
 	:vic_configureTextMemory(0, 1)
@@ -248,7 +248,7 @@ checkUp:
 	and tile.temp0
 	bne checkLeft
 	dec tile.mapPositionYTile
-	:c64_subConstFromMem(16, tile.rasterOffset)
+	:subConstFromMem(16, tile.rasterOffset)
 checkLeft:
 	lda #cia.JOY_LEFT
 	and tile.temp0
@@ -308,10 +308,10 @@ nextCol:
 	cmp #$FF
 	beq fireDashboard
 	:copyWord(tile.nextTileSwitchingColor2Lo, tile.nextRasterSwitchingColorLo)
-	:c64_subMemFromMem(tile.rasterOffset, tile.nextRasterSwitchingColorLo)
+	:subMemFromMem(tile.rasterOffset, tile.nextRasterSwitchingColorLo)
 	bmi nextCol
 	:copyWord(tile.nextRasterSwitchingColorLo, tile.currentRasterTemp)
-	:c64_subConstFromMem(DASHBOARD_RASTER, tile.currentRasterTemp)
+	:subConstFromMem(DASHBOARD_RASTER, tile.currentRasterTemp)
 	bpl fireDashboard
 	:vic_IRQ_EXIT(irqSwitchColor, tile.nextRasterSwitchingColorLo, true)
 fireDashboard:
@@ -330,10 +330,10 @@ nextCol:
 	cmp #$FF
 	beq fireDashboard
 	:copyWord(tile.nextTileSwitchingColor2Lo, tile.nextRasterSwitchingColorLo)
-	:c64_subMemFromMem(tile.rasterOffset, tile.nextRasterSwitchingColorLo)
+	:subMemFromMem(tile.rasterOffset, tile.nextRasterSwitchingColorLo)
 	bmi nextCol
 	:copyWord(tile.nextRasterSwitchingColorLo, tile.currentRasterTemp)
-	:c64_subConstFromMem(DASHBOARD_RASTER, tile.currentRasterTemp)
+	:subConstFromMem(DASHBOARD_RASTER, tile.currentRasterTemp)
 	bpl fireDashboard
 	:vic_IRQ_EXIT(irqSwitchColor, tile.nextRasterSwitchingColorLo, true)
 fireDashboard:

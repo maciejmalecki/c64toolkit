@@ -44,7 +44,7 @@
 .label temp14			= TEMP_OFFSET + 14
 .label temp15			= TEMP_OFFSET + 15
 
-.macro c64_configureMemory(config) {
+.macro configureMemory(config) {
 	lda c64.MOS_6510_IO
 	and #%11111000
 	ora #[config & %00000111]
@@ -65,7 +65,7 @@
 	sta low + 1
 }
 
-.macro c64_subConstFromMem(value, low) {
+.macro subConstFromMem(value, low) {
 	sec
 	lda low
 	sbc	#<value
@@ -95,7 +95,7 @@
 	sta destination + 1
 }
 
-.macro c64_subMemFromMem(source, destination) {
+.macro subMemFromMem(source, destination) {
 	sec
 	lda destination
 	sbc source
