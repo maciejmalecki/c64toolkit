@@ -108,12 +108,12 @@
 .macro mul2Mem16(low) {
 	clc			// 2
 	asl low		// 5
-	bcc next	// 2
+	bcc !+		// 2
 	lda low + 1	// 3
 	asl			// 2
 	ora #%1		// 2
 	sta low + 1	// 3
-next:			// =19
+!:				// =19
 }
 
 .macro copyWord(source, destination) {
@@ -139,9 +139,9 @@ next:			// =19
 
 .macro incWord(destination) {
 	inc destination
-	bne over
+	bne !+
 	inc destination + 1
-over:
+!:
 }
 
 .macro set8(value, mem) {
