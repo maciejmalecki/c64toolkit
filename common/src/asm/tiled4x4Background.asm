@@ -95,7 +95,7 @@ precalcMapRowOffsets: {
 	
 	ldx #0 												// X <- current map row number
 	:copyWord(t44.mapDefPtr, mapPtr) 	
-	:set16(offsetsPtr, mapRowOffsets)					// temp2, temp3 <- current map row offsets cell
+	:set16(mapRowOffsets, offsetsPtr)					// temp2, temp3 <- current map row offsets cell
 	:copyByte(t44.mapWidth, mapWidthB)					// temp4 <- WIDTH of map
 	:copyByte(t44.mapHeight, mapHeightB)				// temp5 <- HEIGHT of map
 !:
@@ -133,7 +133,7 @@ precalculateTileOffsets: {
 
 	ldx #0
 	:copyWord(t44.tileDefPtr, tilePtr)						// temp0, temp1 <- pointer to tile definition structure
-	:set16(offsetsPtr, tileOffsets)							// temp2, temp3 <- current ptr to tileOffets array element
+	:set16(tileOffsets, offsetsPtr)							// temp2, temp3 <- current ptr to tileOffets array element
 !:
 	:copyWordIndirect(tilePtr, offsetsPtr)
 	:addConstToMem(16, tilePtr)
@@ -180,6 +180,8 @@ do:
  * - temp6
  * - temp7
  * - temp8, temp9
+ * - temp10
+ * - temp11, temp12
  */
 .macro displayMap4x4(screenPtr) {
 	.const currentMapPtr = c64.temp0
@@ -205,7 +207,6 @@ toEnd:
 	jmp end
 !:
 
-
 // find right edge
 	lda t44.mapWidth
 	sec
@@ -226,12 +227,10 @@ toEnd:
 !:
 	sta bottomEdgeB
 
-
-
 // do the needful, find tile definition to be drawn
-	:set16(colorRamPtr, vic.COLOR_RAM)
-	:set16(tileScreenPtr, screenPtr)
-	:set16(currentScreenPtr + 1, screenPtr)					// temp4, temp5 <- initalized with top left char of the screen
+	:set16(vic.COLOR_RAM, colorRamPtr)
+	:set16(screenPtr, tileScreenPtr)
+	:set16(screenPtr, currentScreenPtr + 1)					// temp4, temp5 <- initalized with top left char of the screen
 	:zero8(tileXCounterB)
 	:zero8(tileYCounterB)
 	:copyByte(t44.mapY + 1, currentMapPtr)

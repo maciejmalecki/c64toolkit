@@ -82,7 +82,7 @@ initialize:
 	:cia_setVICBank(vic.BANK_2)
 	:vic_setMultiColorText(1)
 	:vic_configureTextMemory(0, 1)
-	:set16(tile.rasterOffset, 0)
+	:set16(0, tile.rasterOffset)
 	cli
 	
 	lda vic.CONTROL_2
@@ -104,11 +104,11 @@ displayMap: {
 	sta tile.temp1 // current X pos in the screen
 	sta tile.temp2 // current Y pos in the screen
 	// initialize screen pointer
-	:set16(tile.screenPointerLo, SCREEN_0_MEM)
+	:set16(SCREEN_0_MEM, tile.screenPointerLo)
 	// initialize map pointer
 	:copyWord(tile.mapPointerLo, tile.tempMapPointerLo)
 	// initialize color ram ptr
-	:set16(tile.colorRamPointerLo, vic.COLOR_RAM)
+	:set16(vic.COLOR_RAM, tile.colorRamPointerLo)
 	// rewind map to start position
 	:addMemToMem8(tile.mapPositionXTile, tile.tempMapPointerLo)	
 	lda tile.mapPositionYTile

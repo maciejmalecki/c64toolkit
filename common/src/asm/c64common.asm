@@ -144,16 +144,16 @@ next:			// =19
 over:
 }
 
-.macro set8(mem, value) {
+.macro set8(value, mem) {
 	lda #value
 	sta mem
 }
 
 .macro zero8(mem) {
-	:set8(mem, 0)
+	:set8(0, mem)
 }
 
-.macro set16(mem, value) {
+.macro set16(value, mem) {
 	lda #<value
 	sta mem
 	lda #>value
@@ -161,5 +161,5 @@ over:
 }
 
 .macro zero16(mem) {
-	:set16(mem, $0000)
+	:set16($0000, mem)
 }
