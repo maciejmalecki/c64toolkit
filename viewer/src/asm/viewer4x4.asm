@@ -97,7 +97,8 @@ initialize:
 	rts
 	
 displayMap: {
-	:displayMap4x4(SCREEN_0_MEM)
+	:set16(SCREEN_0_MEM, t44.screen0)
+	jsr t44.displayMap4x4
 	rts
 }
 	

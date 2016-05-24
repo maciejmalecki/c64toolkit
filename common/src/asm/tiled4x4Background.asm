@@ -183,7 +183,7 @@ do:
  * - temp10
  * - temp11, temp12
  */
-.macro displayMap4x4(screenPtr) {
+displayMap4x4: {
 	.const currentMapPtr = c64.temp0
 	.const currentTileDefPtr = c64.temp2
 	.const tileXCounterB = c64.temp4
@@ -229,8 +229,8 @@ toEnd:
 
 // do the needful, find tile definition to be drawn
 	:set16(vic.COLOR_RAM, colorRamPtr)
-	:set16(screenPtr, tileScreenPtr)
-	:set16(screenPtr, currentScreenPtr + 1)					// temp4, temp5 <- initalized with top left char of the screen
+	:copyWord(t44.screen0, tileScreenPtr)
+	:copyWord(t44.screen0, currentScreenPtr + 1)			// temp4, temp5 <- initalized with top left char of the screen
 	:zero8(tileXCounterB)
 	:zero8(tileYCounterB)
 	:copyByte(t44.mapY + 1, currentMapPtr)
@@ -297,6 +297,7 @@ nextRow:
 	jmp nextTile
 	
 end:
+	rts
 }
 
 // HEADER MANIPULATION
