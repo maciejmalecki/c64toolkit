@@ -11,27 +11,38 @@
 /* ------------------------------------
  * VIC-II memory registers.
  * ------------------------------------ */
-.label BASE = $D000
-.label SPRITE_MSB_X = BASE + 16
-.label CONTROL_1 = BASE + 17
-.label RASTER = BASE + 18
-.label SPRITE_ENABLE = BASE + 21
-.label CONTROL_2 = BASE + 22
-.label SPRITE_EXPAND_Y = BASE + 23
-.label MEMORY_CONTROL = BASE + 24
-.label IRR = BASE + 25
-.label IMR = BASE + 26
-.label BORDER_COL = BASE + 32
-.label BG_COL_0 = BASE + 33
-.label BG_COL_1 = BASE + 34
-.label BG_COL_2 = BASE + 35
-.label SPRITE_COLOR = BASE + 39
-.label COLOR_RAM = $D800
+.label BASE 				= $D000	// 0
+.label SPRITE_MSB_X 		= $D010	// 16
+.label CONTROL_1 			= $D011	// 17
+.label RASTER 				= $D012	// 18
+.label LATCH_X				= $D013	// 19
+.label LATCH_Y				= $D014	// 20
+.label SPRITE_ENABLE 		= $D015	// 21
+.label CONTROL_2 			= $D016	// 22
+.label SPRITE_EXPAND_Y 		= $D017	// 23
+.label MEMORY_CONTROL 		= $D018	// 24
+.label IRR 					= $D019	// 25
+.label IMR 					= $D01A	// 26
+.label SPRITE_PRIORITY		= $D01B	// 27
+.label SPRITE_COL_MODE		= $D01C	// 28
+.label SPRITE_EXPAND_X		= $D01D	// 29
+.label SPRITE_2S_COLLISION	= $D01E	// 30
+.label SPRITE_2B_COLLISION	= $D01F	// 31
+.label BORDER_COL 			= $D020	// 32
+.label BG_COL_0 			= $D021 // 33
+.label BG_COL_1 			= $D022	// 34
+.label BG_COL_2 			= $D023	// 35
+.label BG_COL_3				= $D024	// 36
+.label SPRITE_COL_0			= $D025	// 37
+.label SPRITE_COL_1			= $D026	// 38
+.label SPRITE_COLOR 		= $D027	// 39
 
-.label BANK_0 = %00000011
-.label BANK_1 = %00000010
-.label BANK_2 = %00000001
-.label BANK_3 = %00000000
+.label COLOR_RAM 			= $D800
+
+.label BANK_0 				= %00000011
+.label BANK_1 				= %00000010
+.label BANK_2 				= %00000001
+.label BANK_3 				= %00000000
 
 .label TOP_SCREEN_RASTER_POS = 50
 
