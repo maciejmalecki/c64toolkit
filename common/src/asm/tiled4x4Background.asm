@@ -21,10 +21,10 @@
 .const GLOBAL			= $02	// starting offset for global zero page registers reserved for background
 .label screen0			= GLOBAL + 0
 .label screen1			= GLOBAL + 2
-.label mapX				= GLOBAL + 4
-.label mapY				= GLOBAL + 6
-.label tileDefPtr		= GLOBAL + 8	
-.label tileAttrDefPtr	= GLOBAL + 10
+.label mapX				= GLOBAL + 4	// Both mapX, mapY denote top-left corner of visible area, internal structure of each is following: 
+.label mapY				= GLOBAL + 6	// lo byte: tile position of top-left corner of visible area, hi byte: 7..4 pixel position within tile, 3..0 sub pixel position (for future use)
+.label tileDefPtr		= GLOBAL + 8	// Pointer to tile definition of current map. Each 4x4 tile is stored in 16 subsequent bytes, starting from top-left character code.
+.label tileAttrDefPtr	= GLOBAL + 10	// Pointer to tile attribute definition (that is, for each tile unique color is specified - only colors 0..7 are supported, 3rd bit is used for multicolor/hires selection).
 .label mapDefPtr		= GLOBAL + 12
 .label mapStructPtr		= GLOBAL + 14
 .label scrollX			= GLOBAL + 16
