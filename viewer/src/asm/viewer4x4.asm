@@ -38,14 +38,6 @@ start: {
 	jsr displayMap
 loop:
 	jsr handleJoyA
-	ldx #$FF
-pause:
-	nop
-	nop
-	nop
-	nop
-	dex
-	bne pause
 	jmp loop
 }
 
@@ -132,7 +124,12 @@ checkRight:
 	bne next3
 	inc t44.mapX + 1
 next3:
+!:	lda vic.RASTER
+	cmp #150
+	bne !-
+	inc vic.BORDER_COL
 	jsr displayMap
+	dec vic.BORDER_COL
 	jsr displayDashboardVars
 next4:
 	rts
