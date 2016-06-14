@@ -131,7 +131,7 @@ mapPointers:
 	iny
 }
 
-.macro tile_nextColor2Switch() {
+.macro @tile_nextColor2Switch() {
 	lda tile.color2SwitchPosition
 	asl
 	asl
@@ -150,6 +150,6 @@ mapPointers:
 	inc tile.color2SwitchPosition
 }
 
-.function tile_calcRaster(tileY) {
+.function @tile_calcRaster(tileY) {
 	.return tileY * 16 + vic.TOP_SCREEN_RASTER_POS
 }

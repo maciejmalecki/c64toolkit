@@ -47,8 +47,8 @@ initializeMap4x4: {
 	tya
 	sta t44.mapStructPtr + 1					
 	
-	:zero16(t44.mapX)
-	:zero16(t44.mapY)
+	zero16(t44.mapX)
+	zero16(t44.mapY)
 	:headerRewind()
 	:headerSkip8()		// CONTROL
 	:read8(mapWidth)
@@ -58,8 +58,8 @@ initializeMap4x4: {
 	:readAndCalculateAddress(t44.tileAttrDefPtr)
 	:readAndCalculateAddress(t44.mapDefPtr)
 	
-	:copyWord(t44.mapStructPtr, t44.tileDefPtr)
-	:addConstToMem(HEADER_SIZE, t44.tileDefPtr)
+	copyWord(t44.mapStructPtr, t44.tileDefPtr)
+	addConstToMem(HEADER_SIZE, t44.tileDefPtr)
 	
 	jsr precalcMapRowOffsets
 	jsr precalculateTileOffsets
@@ -94,7 +94,7 @@ precalcMapRowOffsets: {
 	.const mapHeightB = c64.temp5	
 	
 	ldx #0 												// X <- current map row number
-	:copyWord(t44.mapDefPtr, mapPtr) 	
+	copyWord(t44.mapDefPtr, mapPtr) 	
 	:set16(mapRowOffsets, offsetsPtr)					// temp2, temp3 <- current map row offsets cell
 	:copyByte(t44.mapWidth, mapWidthB)					// temp4 <- WIDTH of map
 	:copyByte(t44.mapHeight, mapHeightB)				// temp5 <- HEIGHT of map

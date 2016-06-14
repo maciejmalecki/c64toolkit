@@ -23,7 +23,7 @@
 
 // charset data
 .var charset = LoadBinary("../gfx/charset.bin")
-.pc = CHARSET_0_MEM	"Charset" .fill charset.getSize(), charset.get(i)
+.pc = CHARSET_0_MEM	"Charset"; .fill charset.getSize(), charset.get(i)
 
 .pc = $0801 "Basic Upstart"
 :BasicUpstart(start) // Basic start routine

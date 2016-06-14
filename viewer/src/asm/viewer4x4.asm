@@ -22,7 +22,7 @@
 
 // charset data
 .var charset = LoadBinary("../gfx/charset4x4.bin")
-.pc = CHARSET_0_MEM	"Charset" .fill charset.getSize(), charset.get(i)
+.pc = CHARSET_0_MEM	"Charset"; .fill charset.getSize(), charset.get(i)
 
 .pc = $0801 "Basic Upstart"
 :BasicUpstart(start) // Basic start routine
@@ -58,7 +58,7 @@ initialize:
 	sta $DD0D
 	lda #$01
 	sta vic.IMR
-	:vic_setRaster(DASHBOARD_RASTER)
+	vic_setRaster(DASHBOARD_RASTER)
 	lda #<irqDashboard
 	sta $FFFE
 	lda #>irqDashboard

@@ -1,5 +1,5 @@
 .importonce
-.filenamespace c64
+.filenamespace c64 
 
 .label MOS_6510_DIRECTION 	= $00
 .label MOS_6510_IO 			= $01
@@ -44,7 +44,7 @@
 .label temp14			= TEMP_OFFSET + 14
 .label temp15			= TEMP_OFFSET + 15
 
-.macro configureMemory(config) {
+.macro @configureMemory(config) {
 	lda c64.MOS_6510_IO
 	and #%11111000
 	ora #[config & %00000111]
@@ -55,7 +55,7 @@
  * Various memory operations
  * --------------------------------------------- */
 
-.macro addConstToMem(value, low) {
+.macro @addConstToMem(value, low) {
 	clc
 	lda low
 	adc #<value
@@ -65,7 +65,7 @@
 	sta low + 1
 }
 
-.macro subConstFromMem(value, low) {
+.macro @subConstFromMem(value, low) {
 	sec
 	lda low
 	sbc	#<value
@@ -75,7 +75,7 @@
 	sta low + 1
 }
 
-.macro addMemToMem8(byte, low) {
+.macro @addMemToMem8(byte, low) {
 	clc
 	lda low
 	adc byte
@@ -85,7 +85,7 @@
 	sta low + 1
 }
 
-.macro addMemToMem16(source, destination) {
+.macro @addMemToMem16(source, destination) {
 	clc
 	lda source
 	adc destination
@@ -95,7 +95,7 @@
 	sta destination + 1
 }
 
-.macro subMemFromMem(source, destination) {
+.macro @subMemFromMem(source, destination) {
 	sec
 	lda destination
 	sbc source
@@ -105,7 +105,7 @@
 	sta destination + 1
 }
 
-.macro mul2Mem16(low) {
+.macro @mul2Mem16(low) {
 	clc			// 2
 	asl low		// 5
 	bcc !+		// 2
@@ -116,14 +116,14 @@
 !:				// =19
 }
 
-.macro copyWord(source, destination) {
+.macro @copyWord(source, destination) {
 	lda source
 	sta destination
 	lda source+1
 	sta destination+1
 }
 
-.macro copyWordIndirect(source, destinationPointer) {
+.macro @copyWordIndirect(source, destinationPointer) {
 	ldy #0
 	lda source
 	sta (destinationPointer), y
@@ -132,34 +132,34 @@
 	sta (destinationPointer), y
 }
 
-.macro copyByte(source, destination) {
+.macro @copyByte(source, destination) {
 	lda source
 	sta destination
 }
 
-.macro incWord(destination) {
+.macro @incWord(destination) {
 	inc destination
 	bne !+
 	inc destination + 1
 !:
 }
 
-.macro set8(value, mem) {
+.macro @set8(value, mem) {
 	lda #value
 	sta mem
 }
 
-.macro zero8(mem) {
+.macro @zero8(mem) {
 	:set8(0, mem)
 }
 
-.macro set16(value, mem) {
+.macro @set16(value, mem) {
 	lda #<value
 	sta mem
 	lda #>value
 	sta mem + 1
 }
 
-.macro zero16(mem) {
+.macro @zero16(mem) {
 	:set16($0000, mem)
 }

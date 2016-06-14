@@ -13,7 +13,7 @@
 .label JOY_RIGHT 			= %01000
 .label JOY_FIRE 			= %10000
 
-.macro cia_setVICBank(bank) {
+.macro @cia_setVICBank(bank) {
 	lda cia.CIA2_DATA_PORT_A
 	and #%11111100
 	ora #[bank & %00000011]

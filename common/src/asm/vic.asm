@@ -49,17 +49,17 @@
 /* ------------------------------------
  * VIC-II configuration handling.
  * ------------------------------------ */
-.macro vic_configureTextMemory(video, charSet) {
+.macro @vic_configureTextMemory(video, charSet) {
 	lda #[charSet*2 + video*16]
 	sta vic.MEMORY_CONTROL
 }
 
-.macro vic_configureBitmapMemory(bitmap) {
+.macro @vic_configureBitmapMemory(bitmap) {
 	lda #[bitmap*8]
 	sta vic.MEMORY_CONTROL
 }
 
-.macro vic_setMultiColorText(on) {
+.macro @vic_setMultiColorText(on) {
 	lda vic.CONTROL_2
 	.if (on == 1) {
 		ora #%00010000
@@ -69,7 +69,7 @@
 	sta vic.CONTROL_2
 }
 
-.macro vic_setRaster(rasterLine) {
+.macro @vic_setRaster(rasterLine) {
 	lda #<rasterLine
 	sta vic.RASTER
 	lda vic.CONTROL_1
@@ -81,7 +81,7 @@
 	sta vic.CONTROL_1
 }
 
-.macro vic_IRQ_ENTER() {
+.macro @vic_IRQ_ENTER() {
 	pha
 	tya
 	pha
@@ -89,7 +89,7 @@
 	pha
 }
 
-.macro vic_IRQ_EXIT(intVector, rasterLine, memory) {
+.macro @vic_IRQ_EXIT(intVector, rasterLine, memory) {
 	ldx #>intVector
 	ldy #<intVector
 	stx $FFFF
@@ -163,7 +163,7 @@
 }
 
 
-.macro c64_clearScreen(screenAddress, clearChar) {
+.macro @c64_clearScreen(screenAddress, clearChar) {
 	lda #clearChar
 	ldx #$00
 loop:
@@ -178,7 +178,7 @@ loop:
 /*
  * Text pointer ended with $FF and up to 255 characters.
  */
-.macro vic_outText(textPointer, screenMemPointer, xPos, yPos, col) {
+.macro @vic_outText(textPointer, screenMemPointer, xPos, yPos, col) {
 	ldx #$00
 	lda textPointer, x
 loop:
@@ -194,7 +194,7 @@ loop:
 hexChars:
 	.text "0123456789abcdef"
 	
-.macro vic_outByteHex(bytePointer, screenMemPointer, xPos, yPos, col) {
+.macro @vic_outByteHex(bytePointer, screenMemPointer, xPos, yPos, col) {
 	ldx #$00
 	lda bytePointer
 	:vic_outAHex([screenMemPointer + xPos + 40*yPos])
