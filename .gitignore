@@ -1,2 +1,5 @@
 *.prg
 *.sym
+
+# Gradle
+.gradle
