@@ -1,5 +1,11 @@
 task assemble {
 	doLast {
-		println 'Done'
+		println 'Assembled'
+	}
+}
+
+task check {
+	doLast {
+		println 'Checked'
 	}
 }
