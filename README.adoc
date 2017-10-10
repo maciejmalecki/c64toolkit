@@ -1,0 +1,4 @@
+=== c64toolkit
+Bunch of macros and code snippets for KickAssembler and Commodore 64
+
+image:https://travis-ci.org/maciejmalecki/c64toolkit.svg?branch-master["Build Status", link=https://travis-ci.org/maciejmalecki/c64toolkit]
