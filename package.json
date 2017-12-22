@@ -1,0 +1,25 @@
+{
+  "name": "c64toolkit",
+  "version": "0.0.1",
+  "description": "Sample C64 library (6502)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/maciejmalecki/c64toolkit.git"
+  },
+  "keywords": [
+    "c64",
+    "6502",
+    "6510",
+    "asm"
+  ],
+  "author": "Maciej Malecki",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/maciejmalecki/c64toolkit/issues"
+  },
+  "homepage": "https://github.com/maciejmalecki/c64toolkit#readme"
+}
