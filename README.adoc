@@ -1,4 +1,2 @@
 === c64toolkit
-Bunch of macros and code snippets for KickAssembler and Commodore 64
-
-image:https://travis-ci.org/maciejmalecki/c64toolkit.svg?branch=develop["Build Status", link=https://travis-ci.org/maciejmalecki/c64toolkit]
+This repository is no longer used. For actual status of `c64lib` please check: https://github.com/c64lib
